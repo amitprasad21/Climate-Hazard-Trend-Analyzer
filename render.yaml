@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: climate-hazard-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        value: climate_hazard_analyzer
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: WEATHER_PRIMARY_PROVIDER
+        value: nasa_power
+      - key: WEATHER_FALLBACK_PROVIDERS
+        value: open_meteo
+      - key: WEATHER_FALLBACK_ENABLED
+        value: "false"
+      - key: OPEN_METEO_NONCOMMERCIAL_USE
+        value: "true"
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
