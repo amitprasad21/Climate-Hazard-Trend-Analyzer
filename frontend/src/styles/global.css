@@ -522,6 +522,21 @@ input[aria-invalid="true"] {
   stroke-width: 2;
 }
 
+.series-area {
+  pointer-events: none;
+  stroke: none;
+}
+
+.chart-gradient-top {
+  stop-color: var(--color-chart-primary);
+  stop-opacity: 0.12;
+}
+
+.chart-gradient-bottom {
+  stop-color: var(--color-chart-primary);
+  stop-opacity: 0;
+}
+
 .swatch-primary line,
 .series-primary path {
   stroke: var(--color-chart-primary);

@@ -100,6 +100,8 @@ export function LineChart({
     MARGIN.left + (yearSpan === 0 ? plotWidth / 2 : ((year - firstYear) / yearSpan) * plotWidth);
   const y = (value: number) => MARGIN.top + plotHeight - ((value - low) / (high - low)) * plotHeight;
   const labelEvery = Math.max(1, Math.ceil(years.length / Math.max(1, Math.floor(plotWidth / MIN_LABEL_SPACING))));
+  const gradientId = `area-grad-${titleId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+  const baselineY = zeroLine && low < 0 ? y(0) : MARGIN.top + plotHeight;
 
   return (
     <figure className="chart">
@@ -128,6 +130,12 @@ export function LineChart({
             <desc id={`${titleId}-summary`}>
               {`${title}, ${years[0]}–${years[years.length - 1]}. Exact values are in the data table.`}
             </desc>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop className="chart-gradient-top" offset="0%" />
+                <stop className="chart-gradient-bottom" offset="100%" />
+              </linearGradient>
+            </defs>
             {ticks.map((tick) => (
               <g key={tick}>
                 <line className="grid-line" x1={MARGIN.left} x2={width - MARGIN.right} y1={y(tick)} y2={y(tick)} />
@@ -147,6 +155,21 @@ export function LineChart({
             <text className="axis-title" transform={`translate(14 ${MARGIN.top + plotHeight / 2}) rotate(-90)`} textAnchor="middle">
               {unit}
             </text>
+            {series.map(
+              (s) =>
+                s.variant === "primary" &&
+                segments(s.values).map(
+                  (run) =>
+                    run.length > 1 && (
+                      <path
+                        key={`area-${run[0]}`}
+                        className="series-area"
+                        fill={`url(#${gradientId})`}
+                        d={`M${x(years[run[0]])},${baselineY} ${run.map((i) => `L${x(years[i])},${y(s.values[i] as number)}`).join(" ")} L${x(years[run[run.length - 1]])},${baselineY} Z`}
+                      />
+                    ),
+                ),
+            )}
             {series.map((s) =>
               segments(s.values).map((run) => (
                 <g key={`${s.label}-${run[0]}`} className={`series series-${s.variant}`}>
