@@ -417,6 +417,41 @@ input[aria-invalid="true"] {
   font-size: var(--text-small);
 }
 
+.metric:hover {
+  border-color: var(--color-control-border);
+}
+
+.trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: var(--text-small);
+  font-weight: 600;
+  border: 1px solid var(--color-control-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.trend-arrow {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.trend-increasing {
+  border-color: var(--color-text-primary);
+  background: var(--color-surface-2);
+}
+
+.trend-decreasing,
+.trend-flat,
+.trend-insufficient {
+  border-color: var(--color-control-border);
+  background: var(--color-surface-2);
+}
+
 .charts {
   display: grid;
   gap: var(--space-5);

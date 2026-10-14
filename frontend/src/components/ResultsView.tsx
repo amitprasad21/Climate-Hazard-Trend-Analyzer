@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { AnalysisResponse, TrendDirection } from "../api/types";
 import {
   PROVIDER_NAMES,
@@ -10,21 +11,21 @@ import {
 } from "../format";
 import { LineChart } from "./LineChart";
 
-const TRENDS: Record<TrendDirection, { symbol: string; text: string }> = {
-  increasing: { symbol: "↑", text: "Increasing" },
-  decreasing: { symbol: "↓", text: "Decreasing" },
-  flat: { symbol: "→", text: "No linear change" },
-  insufficient_data: { symbol: "—", text: "Not estimated" },
+const TRENDS: Record<TrendDirection, { symbol: string; text: string; badgeClass: string }> = {
+  increasing: { symbol: "↗", text: "Increasing", badgeClass: "trend-increasing" },
+  decreasing: { symbol: "↘", text: "Decreasing", badgeClass: "trend-decreasing" },
+  flat: { symbol: "→", text: "No linear change", badgeClass: "trend-flat" },
+  insufficient_data: { symbol: "—", text: "Not estimated", badgeClass: "trend-insufficient" },
 };
 
-function Metric({ label, value, unit, note }: { label: string; value: string; unit?: string; note: string }) {
+function Metric({ label, value, unit, note }: { label: string; value: ReactNode; unit?: string; note: string }) {
   return (
     <li className="metric">
       <p className="metric-label">{label}</p>
-      <p className="metric-value">
+      <div className="metric-value">
         {value}
-        {unit && value !== "—" && <span className="metric-unit"> {unit}</span>}
-      </p>
+        {unit && typeof value === "string" && value !== "—" && <span className="metric-unit"> {unit}</span>}
+      </div>
       <p className="metric-note">{note}</p>
     </li>
   );
@@ -49,7 +50,12 @@ function Metrics({ result }: { result: AnalysisResponse }) {
       />
       <Metric
         label="Frequency trend"
-        value={`${trend.symbol} ${trend.text}`}
+        value={
+          <span className={`trend-badge ${trend.badgeClass}`}>
+            <span className="trend-arrow" aria-hidden="true">{trend.symbol}</span>
+            <span>{trend.text}</span>
+          </span>
+        }
         note={
           summary.frequency_slope_per_year === null
             ? `Needs at least 10 eligible years (${eligible} available)`
