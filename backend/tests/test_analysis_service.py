@@ -82,7 +82,7 @@ def test_stored_weather_is_reused_without_fetching():
 
 @pytest.mark.parametrize("req,code", [
     (request(region={"kind": "bbox", "label": "Box", "south": 28, "west": 77,
-                     "north": 29, "east": 78}), "UNSUPPORTED_REGION"),
+                     "north": 31, "east": 78}), "UNSUPPORTED_REGION"),
     (request(start=1975, end=1990), "UNSUPPORTED_PERIOD"),
     (request(start=2000, end=2026), "UNSUPPORTED_PERIOD"),
 ])

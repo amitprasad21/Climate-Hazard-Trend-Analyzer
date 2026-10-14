@@ -3,7 +3,7 @@
 import asyncio
 import hashlib
 import json
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from datetime import UTC, date, datetime, timedelta
@@ -16,6 +16,7 @@ from app.providers.nasa_power import fetch_nasa_power
 from app.providers.open_meteo import fetch_open_meteo
 from app.selector import eligible_providers, required_intervals, select_source
 from app.settings import WeatherSettings
+from app.spatial import aggregate_regional_days, cosine_weights, sample_centers
 
 FETCHERS = {"nasa_power": fetch_nasa_power, "open_meteo": fetch_open_meteo}
 RESULT_TTL = timedelta(hours=24)
@@ -50,11 +51,21 @@ def _round(value: float | None, digits: int) -> float | None:
 
 def cache_key(request: wire.AnalysisRequest, providers: tuple[str, ...], minimum: float) -> str:
     region = request.region
+    if region.kind == "point":
+        region_desc = [region.kind, f"{region.latitude:.4f}", f"{region.longitude:.4f}"]
+    else:
+        region_desc = [
+            region.kind,
+            f"{region.south:.4f}",
+            f"{region.west:.4f}",
+            f"{region.north:.4f}",
+            f"{region.east:.4f}",
+        ]
     canonical = {
         "contract": wire.CONTRACT_VERSION,
         "method": climate.METHOD_VERSION,
         "normalization": NORMALIZATION_VERSION,
-        "region": [region.kind, f"{region.latitude:.4f}", f"{region.longitude:.4f}"],
+        "region": region_desc,
         "period": [request.period.start_year, request.period.end_year],
         "baseline": [climate.BASELINE_START.isoformat(), climate.BASELINE_END.isoformat()],
         "rules": [climate.PERCENTILE, climate.MIN_RUN_DAYS, "strictly_greater", "utc"],
@@ -85,18 +96,21 @@ def _coverage(cover: climate.Coverage) -> dict:
     }
 
 
-def _source_warnings(selection_provider: str, failures, series: DailySeries) -> list[dict]:
+def _source_warnings(
+    selection_provider: str, failures, sample_series: Sequence[DailySeries]
+) -> list[dict]:
     profile = wire.SOURCE_PROFILES[selection_provider]
     lat_step, lon_step = profile.grid_degrees
+    point_text = "the point" if len(sample_series) == 1 else "each sampled point"
     warnings = [
         {
             "code": "GRID_CELL_REPRESENTATION",
             "message": f"Values describe a {profile.model} reanalysis grid cell of about "
-            f"{lat_step}° x {lon_step}° around the point, not a weather station.",
+            f"{lat_step}° x {lon_step}° around {point_text}, not a weather station.",
             "years": [],
         }
     ]
-    if series.resolved is None:
+    if any(s.resolved is None for s in sample_series):
         warnings.append(
             {
                 "code": "RESOLVED_LOCATION_UNKNOWN",
@@ -124,16 +138,55 @@ def build_payload(
     provider: str,
     failures,
     series: tuple[DailySeries, ...],
+    sample_point_series: Sequence[DailySeries],
+    unique_cell_count: int,
     generated_at: datetime,
     expires_at: datetime,
 ) -> dict:
     profile = wire.SOURCE_PROFILES[provider]
-    first = series[0]
-    resolved = (
-        None
-        if first.resolved is None
-        else {"latitude": first.resolved[0], "longitude": first.resolved[1]}
-    )
+    sample_points = [
+        {
+            "requested": {
+                "latitude": s.requested[0],
+                "longitude": s.requested[1],
+            },
+            "resolved": (
+                None
+                if s.resolved is None
+                else {"latitude": s.resolved[0], "longitude": s.resolved[1]}
+            ),
+            "elevation_m": s.elevation_m,
+        }
+        for s in sample_point_series
+    ]
+    aggregation = "point" if request.region.kind == "point" else "nine_point_cosine_weighted_mean"
+    region_warnings = []
+    if request.region.kind == "bbox":
+        region_warnings.append(
+            {
+                "code": "REGIONAL_APPROXIMATION",
+                "message": (
+                    "Regional series is a 3x3 cosine-weighted mean of daily maxima, "
+                    "not a station observation or area maximum."
+                ),
+                "years": [],
+            }
+        )
+        if unique_cell_count < len(sample_point_series):
+            diff = len(sample_point_series) - unique_cell_count
+            plural = "s" if diff > 1 else ""
+            region_warnings.append(
+                {
+                    "code": "SHARED_GRID_CELLS",
+                    "message": (
+                        f"{diff} sample point{plural} shared provider grid cells "
+                        f"and their weights were combined "
+                        f"({unique_cell_count} unique cells sampled)."
+                    ),
+                    "years": [],
+                }
+            )
+
     payload = {
         "contract_version": wire.CONTRACT_VERSION,
         "region": request.region.model_dump(exclude={"label"}),
@@ -183,8 +236,9 @@ def build_payload(
         "warnings": [
             {"code": w.code, "message": w.message, "years": list(w.years)} for w in result.warnings
         ]
-        + _source_warnings(provider, failures, first),
-        "methodology": wire.Methodology().model_dump(),
+        + region_warnings
+        + _source_warnings(provider, failures, sample_point_series),
+        "methodology": wire.Methodology(aggregation=aggregation).model_dump(),
         "data_quality": {
             "baseline": _coverage(result.baseline),
             "analysis": _coverage(result.analysis),
@@ -210,16 +264,7 @@ def build_payload(
             "time_standard": "UTC",
             "temperature_unit": "celsius",
             "normalization_version": NORMALIZATION_VERSION,
-            "sample_points": [
-                {
-                    "requested": {
-                        "latitude": request.region.latitude,
-                        "longitude": request.region.longitude,
-                    },
-                    "resolved": resolved,
-                    "elevation_m": first.elevation_m,
-                }
-            ],
+            "sample_points": sample_points,
             "attribution_url": profile.attribution_url,
             "retrieved_at": min(part.retrieved_at for part in series).isoformat(),
         },
@@ -288,9 +333,16 @@ class AnalysisService:
     async def _compute(self, request: wire.AnalysisRequest, providers, key: str) -> dict:
         region, period = request.region, request.period
         expiries: dict[str, list[datetime]] = {}
+        sample_point_series: dict[str, list[DailySeries]] = {}
+        unique_cells: dict[str, int] = {}
 
-        async def load(provider, start: date, end: date, deadline: float) -> DailySeries:
-            point = (region.latitude, region.longitude)
+        coords = sample_centers(region)
+        weights = cosine_weights(coords)
+
+        async def load_one_point(
+            provider: str, lat: float, lon: float, start: date, end: date, deadline: float
+        ) -> DailySeries:
+            point = (lat, lon)
             stored = await self.weather.load(provider, *point, start, end, self.clock())
             if stored is None:
                 fetched = await self.fetchers[provider](self.http, *point, start, end, deadline)
@@ -301,6 +353,25 @@ class AnalysisService:
             series, expires_at = stored
             expiries.setdefault(provider, []).append(expires_at)
             return series
+
+        async def load(provider: str, start: date, end: date, deadline: float) -> DailySeries:
+            point_series = [
+                await load_one_point(
+                    provider, coord.latitude, coord.longitude, start, end, deadline
+                )
+                for coord in coords
+            ]
+            sample_point_series[provider] = point_series
+            aggregated_days, cell_count = aggregate_regional_days(coords, weights, point_series)
+            unique_cells[provider] = cell_count
+            return DailySeries(
+                provider=provider,
+                requested=(coords[0].latitude, coords[0].longitude),
+                resolved=point_series[0].resolved if len(coords) == 1 else None,
+                elevation_m=point_series[0].elevation_m if len(coords) == 1 else None,
+                retrieved_at=min(s.retrieved_at for s in point_series),
+                days=aggregated_days,
+            )
 
         deadline = asyncio.get_running_loop().time() + self.settings.weather_total_timeout_seconds
         selection = await select_source(
@@ -327,6 +398,8 @@ class AnalysisService:
             selection.provider,
             selection.failures,
             selection.series,
+            sample_point_series[selection.provider],
+            unique_cells.get(selection.provider, 1),
             generated_at,
             expires_at,
         )

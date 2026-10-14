@@ -21,6 +21,9 @@ CONTRACT_VERSION = "0.2"
 EARLIEST_YEAR = 1940
 ProviderName = Literal["nasa_power", "open_meteo"]
 MAX_PERIOD_YEARS = 50
+MAX_BBOX_SPAN = 2.0
+MIN_BBOX_LATITUDE = -85.0
+MAX_BBOX_LATITUDE = 85.0
 AVAILABILITY_LAG = timedelta(days=7)
 MAX_ERROR_DETAILS = 20
 SAFE_SEGMENT = re.compile(r"[A-Za-z0-9_]{1,64}")
@@ -381,9 +384,54 @@ def last_complete_year(today: date) -> int:
 
 
 def ensure_supported(request: AnalysisRequest, today: date) -> None:
-    if request.region.kind != "point":
-        detail = ErrorDetail(field="region.kind", message="Bounded regions are not available yet")
-        raise UnsupportedRequest("UNSUPPORTED_REGION", "Only point regions are supported", [detail])
+    if request.region.kind == "bbox":
+        box = request.region
+        region_details = []
+        if box.south < MIN_BBOX_LATITUDE or box.north > MAX_BBOX_LATITUDE:
+            region_details.append(
+                ErrorDetail(
+                    field="region",
+                    message=f"Latitude must be between {MIN_BBOX_LATITUDE} and {MAX_BBOX_LATITUDE}",
+                )
+            )
+        if box.south >= box.north:
+            region_details.append(
+                ErrorDetail(
+                    field="region.south",
+                    message="South latitude must be strictly less than north latitude",
+                )
+            )
+        if box.west >= box.east:
+            region_details.append(
+                ErrorDetail(
+                    field="region.west",
+                    message="West longitude must be strictly less than east longitude",
+                )
+            )
+        if round(box.north - box.south, 4) > MAX_BBOX_SPAN:
+            region_details.append(
+                ErrorDetail(
+                    field="region",
+                    message=f"Latitude span must be at most {MAX_BBOX_SPAN} degrees",
+                )
+            )
+        if round(box.east - box.west, 4) > MAX_BBOX_SPAN:
+            region_details.append(
+                ErrorDetail(
+                    field="region",
+                    message=f"Longitude span must be at most {MAX_BBOX_SPAN} degrees",
+                )
+            )
+        if region_details:
+            raise UnsupportedRequest(
+                "UNSUPPORTED_REGION", "Requested bounding box is not supported", region_details
+            )
+    elif request.region.kind != "point":
+        detail = ErrorDetail(field="region.kind", message="Unsupported region kind")
+        raise UnsupportedRequest(
+            "UNSUPPORTED_REGION", "Only point and bbox regions are supported", [detail]
+        )
+
     period, latest = request.period, last_complete_year(today)
     details = []
     if period.start_year < EARLIEST_YEAR:

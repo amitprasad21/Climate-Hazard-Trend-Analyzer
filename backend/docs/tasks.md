@@ -86,9 +86,9 @@ Blockers: None. Atlas-specific behaviour is verified with BE-009's live ping.
 
 ## BE-006 Bounded regional sampling
 
-Priority: P2. Status: TODO. Requirements: FR-009, FR-010, SEC-001. Dependencies: BE-007, BE-008.
+Priority: P2. Status: DONE. Requirements: FR-009, FR-010, SEC-001. Dependencies: BE-007, BE-008.
 
-Scope/files: region schema, sampling/regional aggregation, service limits, focused tests. Acceptance: 3x3 centers, correct weights, source-cell dedup with metadata, strict box bounds and fixed sample coverage; performance budget measured before exposing selector. Verify CLIMATE-SPATIAL and cold point-versus-box budget comparison. Evidence: none.
+Scope/files: region schema, sampling/regional aggregation, service limits, focused tests. Acceptance: 3x3 centers, correct weights, source-cell dedup with metadata, strict box bounds and fixed sample coverage; performance budget measured before exposing selector. Verify CLIMATE-SPATIAL and cold point-versus-box budget comparison. Evidence: 2026-10-14. app/spatial.py implements 3x3 grid centers calculation (sample_centers), cosine-latitude weighting (cosine_weights), provider grid cell deduplication with combined weights, and quality priority rules (invalid > missing > valid) in aggregate_regional_days. app/schemas.py (ensure_supported) enforces maximum 2.0° span, -85° to 85° latitude limits, and south < north, west < east boundaries. app/services/analysis.py aggregates 9 cell-center series, computes regional heatwaves, and emits contract 0.2 payload with nine_point_cosine_weighted_mean, 9 sample points, and REGIONAL_APPROXIMATION and SHARED_GRID_CELLS warnings. 271 backend tests pass including tests/test_spatial.py and tests/test_contract.py.
 
 Description: Add bounded nine-point spatial aggregation with honest approximation metadata.
 
@@ -96,9 +96,9 @@ Ownership: backend. Concepts: 24, 58.
 
 Required tests: CLIMATE-SPATIAL, coordinate bounds, fixed weights, dedup and missing-sample cases; cold budget benchmark.
 
-Documents/files: Planned region schema/sampler; docs/climate-methodology.md and root contract.
+Documents/files: app/spatial.py, app/schemas.py, app/services/analysis.py, tests/test_spatial.py; docs/climate-methodology.md and root contract.
 
-Blockers: Point flow and resource safeguards must pass first.
+Blockers: None. Bounded regional sampling and spatial aggregation verified.
 
 ## BE-007 Persisted point analysis endpoint
 

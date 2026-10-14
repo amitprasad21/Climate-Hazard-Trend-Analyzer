@@ -122,12 +122,28 @@ def test_unsupported_period(start, end, field):
     assert [detail.field for detail in error.value.details] == [field]
 
 
-def test_bbox_is_explicitly_unsupported_not_a_point():
+def test_valid_bbox_is_supported():
     request = parse("region", bbox())
     assert request.region.kind == "bbox"
+    ensure_supported(request, TODAY)
+
+
+@pytest.mark.parametrize("changes,field", [
+    ({"south": 20.0, "north": 23.0}, "region"),
+    ({"west": 70.0, "east": 73.0}, "region"),
+    ({"south": 86.0, "north": 87.0}, "region"),
+    ({"south": -88.0, "north": -87.0}, "region"),
+    ({"south": 29.0, "north": 28.0}, "region.south"),
+    ({"west": 78.0, "east": 77.0}, "region.west"),
+])
+def test_unsupported_bbox_is_rejected(changes, field):
+    box = bbox()
+    box.update(changes)
+    request = parse("region", box)
     with pytest.raises(UnsupportedRequest) as error:
         ensure_supported(request, TODAY)
     assert error.value.code == "UNSUPPORTED_REGION"
+    assert any(detail.field == field for detail in error.value.details)
 
 
 def test_valid_request_round_trips_canonical_values(client):
@@ -169,7 +185,7 @@ def test_malformed_and_nonfinite_json(client, raw, field):
 
 
 @pytest.mark.parametrize("body,code", [
-    (payload("region", bbox()), "UNSUPPORTED_REGION"),
+    (payload("region", {**bbox(), "north": 31.0}), "UNSUPPORTED_REGION"),
     (payload("period.start_year", 1930), "UNSUPPORTED_PERIOD"),
 ])
 def test_unsupported_requests_use_typed_422(client, body, code):
