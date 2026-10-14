@@ -276,3 +276,22 @@ it("supports bounding box area selection and submits valid bbox request", () => 
     east: 78,
   });
 });
+
+it("exports heatwave events to CSV", async () => {
+  const createObjectURL = vi.fn().mockReturnValue("blob:mock-url");
+  const revokeObjectURL = vi.fn();
+  window.URL.createObjectURL = createObjectURL;
+  window.URL.revokeObjectURL = revokeObjectURL;
+
+  render(<DashboardPage />);
+  fillValid();
+  submit();
+  await settle(json(syntheticResult()));
+
+  const exportBtn = screen.getByRole("button", { name: "Export CSV" });
+  expect(exportBtn).toBeTruthy();
+  fireEvent.click(exportBtn);
+
+  expect(createObjectURL).toHaveBeenCalledTimes(1);
+  expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+});

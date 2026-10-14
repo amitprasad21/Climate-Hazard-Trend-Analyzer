@@ -501,6 +501,12 @@ input[aria-invalid="true"] {
   font-size: var(--text-small);
 }
 
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: var(--space-2) 0;
+}
+
 .data-table table {
   width: 100%;
   border-collapse: collapse;

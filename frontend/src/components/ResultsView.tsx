@@ -220,11 +220,46 @@ function Findings({ result }: { result: AnalysisResponse }) {
   );
 }
 
+function exportEventsCsv(result: AnalysisResponse) {
+  const rows = [
+    ["Start Date", "End Date", "Duration (days)", "Mean Excess (°C)", "Peak Excess (°C)", "Boundary Censored"],
+    ...result.events.map((e) => [
+      e.start_date,
+      e.end_date,
+      String(e.duration_days),
+      e.mean_excess_c !== null ? String(e.mean_excess_c) : "",
+      e.max_excess_c !== null ? String(e.max_excess_c) : "",
+      e.boundary_censored ? "true" : "false",
+    ]),
+  ];
+  const csvContent = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const safeName = result.region.label.replace(/[^a-zA-Z0-9_-]/g, "_");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `heatwaves_${safeName}_${result.period.start_year}_${result.period.end_year}.csv`);
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function Events({ result }: { result: AnalysisResponse }) {
   if (result.events.length === 0) return null;
   return (
     <details className="data-table events">
       <summary>Show all {result.events.length} events</summary>
+      <div className="table-toolbar">
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => exportEventsCsv(result)}
+        >
+          Export CSV
+        </button>
+      </div>
       <table>
         <caption className="visually-hidden">Heatwave events</caption>
         <thead>
