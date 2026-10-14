@@ -87,6 +87,7 @@ export function LineChart({
   const container = useRef<HTMLDivElement>(null);
   const width = useWidth(container);
   const titleId = useId();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const plotWidth = width - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
   const values = series.flatMap((s) => s.values).filter((v): v is number => v !== null);
@@ -102,6 +103,32 @@ export function LineChart({
   const labelEvery = Math.max(1, Math.ceil(years.length / Math.max(1, Math.floor(plotWidth / MIN_LABEL_SPACING))));
   const gradientId = `area-grad-${titleId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
   const baselineY = zeroLine && low < 0 ? y(0) : MARGIN.top + plotHeight;
+
+  function handlePointerMove(event: React.PointerEvent<SVGSVGElement>) {
+    if (!container.current || years.length === 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    if (mouseX < MARGIN.left || mouseX > width - MARGIN.right) {
+      setHoveredIndex(null);
+      return;
+    }
+    const relX = (mouseX - MARGIN.left) / plotWidth;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+    years.forEach((year, index) => {
+      const yearX = (x(year) - MARGIN.left) / plotWidth;
+      const dist = Math.abs(relX - yearX);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = index;
+      }
+    });
+    setHoveredIndex(closestIndex);
+  }
+
+  function handlePointerLeave() {
+    setHoveredIndex(null);
+  }
 
   return (
     <figure className="chart">
@@ -119,14 +146,17 @@ export function LineChart({
       </ul>
       <div ref={container} className="chart-canvas">
         {hasData ? (
-          <svg
-            // The viewBox keeps the drawing fitted even before a resize measurement arrives.
-            viewBox={`0 0 ${width} ${HEIGHT}`}
-            className="chart-svg"
-            role="img"
-            aria-labelledby={titleId}
-            aria-describedby={`${titleId}-summary`}
-          >
+          <>
+            <svg
+              // The viewBox keeps the drawing fitted even before a resize measurement arrives.
+              viewBox={`0 0 ${width} ${HEIGHT}`}
+              className="chart-svg"
+              role="img"
+              aria-labelledby={titleId}
+              aria-describedby={`${titleId}-summary`}
+              onPointerMove={handlePointerMove}
+              onPointerLeave={handlePointerLeave}
+            >
             <desc id={`${titleId}-summary`}>
               {`${title}, ${years[0]}–${years[years.length - 1]}. Exact values are in the data table.`}
             </desc>
@@ -187,7 +217,56 @@ export function LineChart({
                 </g>
               )),
             )}
+            {hoveredIndex !== null && (
+              <g className="chart-focus" aria-hidden="true">
+                <line
+                  className="crosshair-line"
+                  x1={x(years[hoveredIndex])}
+                  x2={x(years[hoveredIndex])}
+                  y1={MARGIN.top}
+                  y2={HEIGHT - MARGIN.bottom}
+                />
+                {series.map((s) => {
+                  const val = s.values[hoveredIndex];
+                  if (val === null) return null;
+                  return (
+                    <circle
+                      key={`focus-${s.label}`}
+                      className={`focus-dot focus-dot-${s.variant}`}
+                      cx={x(years[hoveredIndex])}
+                      cy={y(val)}
+                      r={5}
+                    />
+                  );
+                })}
+              </g>
+            )}
           </svg>
+          {hoveredIndex !== null && (
+            <div
+              className="chart-tooltip"
+              aria-hidden="true"
+              style={{
+                left: `${Math.min(width - 160, Math.max(MARGIN.left, x(years[hoveredIndex]) - 75))}px`,
+                top: `${MARGIN.top + 8}px`,
+              }}
+            >
+              <p className="tooltip-year">{years[hoveredIndex]}</p>
+              <ul className="tooltip-values">
+                {series.map((s) => (
+                  <li key={s.label} className="tooltip-row">
+                    <span className="tooltip-label">{s.label}:</span>
+                    <span className="tooltip-val">
+                      {s.values[hoveredIndex] !== null
+                        ? `${formatNumber(s.values[hoveredIndex], digits)} ${unit}`
+                        : "—"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
         ) : (
           <p className="chart-empty">No year in this period has a value for this chart.</p>
         )}

@@ -1,4 +1,4 @@
-import { cleanup, render, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { LineChart, niceTicks, segments } from "../src/components/LineChart";
 
@@ -51,4 +51,33 @@ it("explains an empty chart instead of drawing a false line", () => {
   );
   expect(container.querySelector("svg[role=img]")).toBeNull();
   expect(getByText("No year in this period has a value for this chart.")).toBeTruthy();
+});
+
+it("renders interactive crosshair and floating tooltip on pointer hover", () => {
+  const { container } = render(
+    <LineChart
+      title="Frequency"
+      description="Synthetic"
+      years={[2001, 2002, 2003, 2004]}
+      unit="events"
+      series={[
+        { label: "Events", values: [1, 2, 3, 4], variant: "primary" },
+      ]}
+    />,
+  );
+  const svg = container.querySelector("svg[role=img]") as SVGSVGElement;
+  expect(container.querySelector(".crosshair-line")).toBeNull();
+  expect(container.querySelector(".chart-tooltip")).toBeNull();
+
+  // Pointer move into svg
+  fireEvent.pointerMove(svg, { clientX: 200 });
+  expect(container.querySelector(".crosshair-line")).not.toBeNull();
+  const tooltip = container.querySelector(".chart-tooltip");
+  expect(tooltip).not.toBeNull();
+  expect(tooltip?.textContent).toContain("Events:");
+
+  // Pointer leave
+  fireEvent.pointerLeave(svg);
+  expect(container.querySelector(".crosshair-line")).toBeNull();
+  expect(container.querySelector(".chart-tooltip")).toBeNull();
 });
