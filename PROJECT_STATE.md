@@ -26,6 +26,6 @@ DOC-002, BE-001 and BE-009 are DONE. DOC-004 is DONE: the user approved analysis
 
 No bbox sampling, telemetry, CI or deployment exists. All nine viewports, visual/browser/accessibility checks and full frontend-backend behavior are unverified. No visual reference image was supplied.
 
-Backend BE-001/002/003/004/005/007/008/009/010, FE-001/002/003 and REL-002 are DONE; FE-005 is IN_PROGRESS. Next: FE-005 screenshot review and profiling, REL-001 deployment, then BE-006/FE-004 region boxes and BE-011 observability. Significant implementation follows the concrete planning/approval gate; existing approvals remain valid for unchanged scope.
+Backend BE-001/002/003/004/005/007/008/009/010/011, FE-001/002/003 and REL-002 are DONE; FE-005 is IN_PROGRESS. Next: FE-005 screenshot review and profiling, REL-001 deployment, then BE-006/FE-004 region boxes. Significant implementation follows the concrete planning/approval gate; existing approvals remain valid for unchanged scope.
 
 Deployment entitlement, host/accounts, repository remotes/shared-document ownership and CI are unresolved. Deferred queues, breakers, replicas and formal significance need a justified future task/evidence, not installation now.

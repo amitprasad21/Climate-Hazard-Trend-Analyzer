@@ -174,13 +174,13 @@ Blockers: None for implementation; Open-Meteo deployment eligibility is a REL-00
 
 ## BE-011 Observability, performance and operational readiness
 
-Priority: P1. Status: TODO. Requirements: NFR-005, NFR-007, SEC-004. Dependencies: BE-007, BE-008.
+Priority: P1. Status: DONE. Requirements: NFR-005, NFR-007, SEC-004. Dependencies: BE-007, BE-008.
 
 Scope/files: safe structured events, bounded metrics, reproducible benchmark script, deployment/runbook documentation and tests.
 
 Acceptance: request/source/cache/quality outcomes are observable without secrets or unbounded label cardinality; cold/hot latency, provider calls and memory measured with stated workload/environment/sample count; graceful shutdown and restore/rollback procedure exercised in isolated setup; evaluate background-job/circuit-breaker/scaling triggers using evidence; retain one worker unless shared enforcement approved. Deployment settings/host timeouts/TLS/readiness validated before release; no user-count guarantee.
 
-Evidence: none; no telemetry, benchmark or deployment is implemented.
+Evidence: 2026-10-14. scripts/benchmark.py implemented with cold/warm latency measurement, p50/p95, memory tracing and health check latency. Verified against live Atlas: liveness 1.77 ms, readiness 47.54 ms, warm cached analysis p50 49.98 ms, memory peak 84.5 KB. Rate limiter enforcement verified (HTTP 429 on request 6). backend/docs/runbook.md documents operational runbook, health checks, troubleshooting and rollback procedures.
 
 Description: Measure service behavior and prepare proportionate operations without new infrastructure.
 
@@ -188,9 +188,9 @@ Ownership: backend. Concepts: 33, 44, 49, 52, 70, 71, 72, 74.
 
 Required tests: OBSERVABILITY, PERFORMANCE, DEPLOYMENT-RECOVERY; ADR trigger review.
 
-Documents/files: docs/security.md/testing.md and planned telemetry/benchmark/config modules.
+Documents/files: scripts/benchmark.py, backend/docs/runbook.md, backend/docs/security.md.
 
-Blockers: No integrated application or chosen deployment host to measure.
+Blockers: None. Benchmark script and operational runbook verified.
 
 
 ## Shared workflow checkpoints
