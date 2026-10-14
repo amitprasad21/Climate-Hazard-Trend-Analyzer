@@ -15,3 +15,4 @@
 - Charts are hand-built SVG drawn in a viewBox sized to the last measured width; CSS scales it to 100%, so stale ResizeObserver measurements (hidden tabs pause them) never clip. No chart dependency.
 - Dev proxy: Vite forwards /api to 127.0.0.1:8000; production builds set VITE_API_BASE_URL for the separate API domain (ADR-023).
 - A hidden Claude browser pane pauses rendering, timers and ResizeObserver; layout measurement still works, screenshots and timing do not.
+- Review feedback (2026-10-14) asked for clean time-series visuals, a snappy UI and a README of decisions/trade-offs. Accepted order: FE-006 fast start, FE-007 heatwave calendar, then a Leaflet map (not Mapbox: needs a key), then the README rewrite. Calendar excess bins are display groupings of backend values only.

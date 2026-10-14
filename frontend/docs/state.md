@@ -25,3 +25,5 @@ All 13 frontend design concepts (9–21) are expanded in [system design](system.
 The subsequent DOC-007 workflow update aligns planning, package research, UI/review/simplification and final evidence gates with [the shared workflow](../../docs/ai-development-workflow.md). No tool installed or frontend implementation performed. Shared DOC-008 is conditional, not a dependency of manual frontend work.
 
 Next: FE-001 following the [plan](implementation-plan.md). Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).
+
+In progress (2026-10-14, branch `feature/fast-start-and-heatwave-calendar`): FE-006 fast start (server wake-up status, in-browser result reuse within backend expiry, honest loading stages) and then FE-007 heatwave calendar with linked year views. See the [plan](implementation-plan.md).

@@ -83,6 +83,38 @@ Documents/files: src/styles/global.css, src/components/LineChart.tsx, tests/a11y
 Blockers: None. Responsive viewports, accessibility audits and bundle performance verified.
 
 
+## FE-006 Fast start and honest loading
+
+Priority: P1. Status: IN_PROGRESS. Requirements: NFR-006, FR-008. Dependencies: FE-005.
+
+Scope/files: health wake-up and server status, in-browser result reuse, loading stages and placeholders; src/api/client.ts, src/hooks/useServerStatus.ts, src/resultCache.ts, src/hooks/useAnalysis.ts, src/components/LoadingView.tsx, styles and tests. Acceptance: one health request per page load with waking/ready/unreachable messages; repeated identical analyses served from the browser only while the backend's expiry allows, relabelled and marked as saved, never caching errors; loading view shows only real stages and elapsed time, never simulated progress; no backend or contract change. Verify UI-LIFECYCLE plus cache, timer and accessibility tests. Evidence: none yet.
+
+Description: Make the first and repeated analyses feel fast without hiding the free-hosting cold start or inventing progress.
+
+Ownership: frontend. Concepts: 12, 15, 19.
+
+Required tests: UI-LIFECYCLE (server status, cache hit/expiry/no error caching, loading stages), axe, nine-size overflow check.
+
+Documents/files: [plan](implementation-plan.md), docs/state.md, docs/screens.md, docs/testing.md.
+
+Blockers: None.
+
+## FE-007 Heatwave calendar and linked year views
+
+Priority: P1. Status: TODO. Requirements: FR-006, FR-007, NFR-003. Dependencies: FE-003, FE-006.
+
+Scope/files: src/components/HeatwaveCalendar.tsx, src/hooks/useWidth.ts, src/components/LineChart.tsx, src/components/ResultsView.tsx, styles and tests. Acceptance: calendar of backend events by year and day of year with cross-year splitting, labelled grayscale excess bins, censored and excluded markers; hover links every chart to the same year; click, a native year select or Escape drive a year detail panel and filtered events table; all values from the existing response, nothing computed scientifically in the browser. Verify UI-CHARTS, keyboard path and axe. Evidence: none yet.
+
+Description: Turn the returned events into a clear time-series story and link the charts by year.
+
+Ownership: frontend. Concepts: 9, 17, 18.
+
+Required tests: UI-CHARTS (calendar geometry, bins, markers, empty state), linked hover/selection, keyboard and axe.
+
+Documents/files: [plan](implementation-plan.md), [design](design.md), docs/screens.md, docs/system.frontend.md.
+
+Blockers: Starts after FE-006 on the same branch.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns the six roles and stage gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns individual approved installation plus smoke testing; their definitions remain in root TASKS.

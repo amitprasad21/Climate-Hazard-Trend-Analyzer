@@ -34,3 +34,4 @@ Backend BE-001 through BE-011, FE-001 through FE-005 and REL-002 are DONE. Bound
 
 Deployment target accounts/hosting, remote repository synchronization, and final production smoke test are the remaining release prerequisites.
 
+Current work (2026-10-14): responding to review feedback on visualization and responsiveness with FE-006 (fast start) and FE-007 (heatwave calendar) on branch `feature/fast-start-and-heatwave-calendar`; a Leaflet map and a decisions/trade-offs README follow. Production deploys only after the branch is merged.

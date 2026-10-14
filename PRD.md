@@ -23,9 +23,9 @@ Out of scope: authentication, billing, alerts, forecasts, causal attribution, me
 | FR-003 | Assessment / Decision | Select 1-50 full calendar years within provider-supported history; reject reversed/future ranges | BE-001, FE-002 | CONTRACT-INPUT |
 | FR-004 | Assessment | Analyze real historical daily maximum temperatures and return consistent JSON | BE-002, BE-003, BE-005, BE-007 | E2E-ANALYSIS |
 | FR-005 | User | Render backend event count, mean duration, trend direction and regional p95 threshold | FE-003 | UI-METRICS |
-| FR-006 | Assessment / User | Show annual event frequency, event duration and maximum-temperature anomaly using backend data | FE-003 | UI-CHARTS |
-| FR-007 | Assessment | Explain trends with numerical evidence, period and limitations; no causal or unsupported significance claims | BE-002, FE-003 | CLIMATE-TREND |
-| FR-008 | User | Display loading, idle, no-events, partial-data, error and populated states; stale responses cannot replace newer results | FE-002, FE-003 | UI-LIFECYCLE |
+| FR-006 | Assessment / User | Show annual event frequency, event duration and maximum-temperature anomaly using backend data | FE-003, FE-007 | UI-CHARTS |
+| FR-007 | Assessment | Explain trends with numerical evidence, period and limitations; no causal or unsupported significance claims | BE-002, FE-003, FE-007 | CLIMATE-TREND |
+| FR-008 | User | Display loading, idle, no-events, partial-data, error and populated states; stale responses cannot replace newer results | FE-002, FE-003, FE-006 | UI-LIFECYCLE |
 | FR-009 | User / Decision | Display selected location/sample points; disclose unavailable spatial intensity rather than inventing a heatmap | FE-003, BE-006 | UI-GEOGRAPHY |
 | FR-010 | Assessment / Decision | Support a constrained bounding box after point workflow; disclose sampled-area approximation and limits | BE-006, FE-004 | CLIMATE-SPATIAL |
 
@@ -52,7 +52,7 @@ The [methodology](backend/docs/climate-methodology.md) defines baseline, calenda
 | NFR-003 | User / Decision | Keyboard-operable controls, visible focus, chart text/table alternative, reduced motion; target WCAG 2.2 AA | FE-005 | UI-A11Y |
 | NFR-004 | User | Typed contract, separate layers/repositories, focused tests and documented commands | BE-001, FE-001, DOC-001 | CONTRACT-OUTPUT |
 | NFR-005 | Assessment / Decision | Bound provider work and request duration, index lookups, prevent duplicate in-process misses | BE-003, BE-005, BE-007, BE-008 | SECURITY-LOAD |
-| NFR-006 | User | Disable duplicate submits, announce real progress and errors, never simulate analysis progress | FE-002 | UI-LIFECYCLE |
+| NFR-006 | User | Disable duplicate submits, announce real progress and errors, never simulate analysis progress | FE-002, FE-006 | UI-LIFECYCLE |
 | NFR-007 | Assessment | Setup and methodology documented, AI usage disclosed, deployment and code links provided before submission | REL-001 | RELEASE-SMOKE |
 
 Performance budgets are initial engineering targets, not measured results: hot cached request p95 <1 s with 5 concurrent clients; cold request deadline 90 s; initial compressed app JS target <250 KiB excluding optional map chunks. Record payload, region, period, cache state, hardware and sample size when measuring. Reconsider budgets from measurements; never promise a user count without a load test.

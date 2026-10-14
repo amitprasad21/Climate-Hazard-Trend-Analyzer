@@ -147,6 +147,8 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | FE-003 | DONE | Backend-driven metrics, charts, provenance and errors |
 | FE-004 | DONE | Bounded-area selection controls, validation and spatial disclosure |
 | FE-005 | DONE | Nine viewports verified with automated responsive suite, axe clean |
+| FE-006 | IN_PROGRESS | Wake-up, browser result reuse and honest loading stages |
+| FE-007 | TODO | Heatwave calendar and linked year views |
 | BE-006 | DONE | 3x3 cell-center sampling with cosine weighting and cell dedup |
 | REL-002 | DONE | GitHub Actions CI workflow for docs, backend and frontend |
 
