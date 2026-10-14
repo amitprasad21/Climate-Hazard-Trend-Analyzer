@@ -1,6 +1,6 @@
 # Frontend/backend integration contract
 
-Contract version: **0.2** (approved by the user 2026-10-14 under DOC-004/ADR-017; supersedes the ERA5-only 0.1 source object). Liveness and an additive readiness endpoint are implemented with mocked API tests; backend request/error schemas are tested (BE-001). Search/analysis endpoints and consumer schemas are planned. Schema changes require this document, both consumers, contract tests and method/cache-version review in the same logical change. The backend owns scientific results. The browser only formats, selects and renders returned values. The source object below describes NASA POWER and Open-Meteo ERA5 truthfully; see [Source provenance (0.2)](#source-provenance-02).
+Contract version: **0.2** (approved by the user 2026-10-14 under DOC-004/ADR-017; supersedes the ERA5-only 0.1 source object). Backend implements every endpoint below (point regions; bbox returns UNSUPPORTED_REGION until BE-006) with contract tests; frontend consumers follow in FE-002/FE-003. Search/analysis endpoints and consumer schemas are planned. Schema changes require this document, both consumers, contract tests and method/cache-version review in the same logical change. The backend owns scientific results. The browser only formats, selects and renders returned values. The source object below describes NASA POWER and Open-Meteo ERA5 truthfully; see [Source provenance (0.2)](#source-provenance-02).
 
 ## Conventions and validation
 
@@ -16,7 +16,7 @@ Period: integer `start_year` and `end_year`; 1940 <= start <= end (1940 is the o
 |---|---|---|---|
 | `GET /api/v1/health` | None | 200 Health | Liveness only; no DB/provider calls, no cache; deployment-level request limit |
 | `GET /api/v1/health/ready` | None | 200 `{status:"ok", api_version:"v1", database:"available"}` | Additive connectivity draft; DB ping, 503 STORAGE_UNAVAILABLE on outage; no-store; mocked API tests only |
-| `GET /api/v1/regions/search?q=...` | Trimmed q, 2-100 chars; fixed max 10 results | 200 RegionSearch | 422/429/502/504/500; empty result is 200; proposed in-process 24h bounded cache; 30/min/client |
+| `GET /api/v1/regions/search?q=...` | Trimmed q, 2-100 chars; fixed max 10 results | 200 RegionSearch | 422/429/502/503/504/500; empty result is 200; in-process 24h bounded cache; 30/min/client; 503 SEARCH_UNAVAILABLE when Open-Meteo use is not permitted (enter coordinates instead) |
 | `POST /api/v1/analyses/heatwaves` | AnalysisRequest | 200 AnalysisResponse | 422/429/502/503/504/500; server cache only, 5/min/client; no automatic browser retry |
 
 No retrieval endpoint or persisted public analysis ID is required. No 202/job status contract. OPTIONS supports configured CORS preflight. Unknown routes/methods return 404/405 ErrorResponse. Wrong content type returns 415, oversize body 413. All application errors use the same envelope; gateway-generated failures may not, and the client must handle non-JSON errors safely.
@@ -170,7 +170,7 @@ type ErrorResponse = {
 | 422 | INSUFFICIENT_BASELINE / INSUFFICIENT_DATA | Explain coverage issue; do not substitute example results |
 | 429 | RATE_LIMITED | Respect integer-seconds Retry-After; explicit retry when eligible |
 | 502 | PROVIDER_ERROR | Invalid/failed upstream response; preserve inputs, manual retry |
-| 503 | STORAGE_UNAVAILABLE / CAPACITY_EXCEEDED | Database outage or bounded work capacity reached; retry later |
+| 503 | STORAGE_UNAVAILABLE / CAPACITY_EXCEEDED / SEARCH_UNAVAILABLE | Database outage, bounded work capacity reached (retry later), or search disabled by configuration (`retryable: false`) |
 | 504 | UPSTREAM_TIMEOUT / ANALYSIS_TIMEOUT | Upstream/deadline exhausted; suggest narrower analysis and explicit retry |
 | 500 | INTERNAL_ERROR | Generic message and request ID; no exception/secret disclosure |
 

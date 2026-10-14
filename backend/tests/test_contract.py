@@ -15,6 +15,7 @@ from app.schemas import (
     ensure_supported,
     last_complete_year,
 )
+from tests.fakes import no_services
 
 TODAY = date(2026, 10, 14)
 DELETE = object()
@@ -50,7 +51,7 @@ def bbox():
 @pytest.fixture
 def client(db_settings):
     database = Mock(open=AsyncMock(), ping=AsyncMock(), close=AsyncMock())
-    app = create_app(db_settings, lambda config: database)
+    app = create_app(db_settings, lambda config: database, services_factory=no_services)
 
     # Test-only route; the public analysis endpoint belongs to BE-007.
     @app.post(PROBE)

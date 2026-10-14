@@ -15,3 +15,6 @@
 - The shared concept matrix and local task tracker own traceability; current state/evidence must be updated after each meaningful change. Independent Git and CI remain unconfigured.
 
 - [The shared AI workflow](../../docs/ai-development-workflow.md) owns planning/research/architecture approval, verification/review/simplification and final evidence. Use focused TDD for science/validation/fallback/cache; separate live from mocked tests. No team plugin was installed. Installation needs explicit approval and an individual smoke test; existing task approvals persist for unchanged scope.
+- FastAPI turns any non-HTTPException raised while reading a body into a 400, so the streaming size guard raises HTTPException(413). FastAPI's 500 handler sits outside CORS, so RequestContextMiddleware (inside CORS) contains unexpected errors.
+- Serve with `uvicorn app.main:create_app --factory --no-proxy-headers`; importing the module performs no settings or network work.
+- The local MongoDB 8.3.4 on 127.0.0.1:27017 holds the user's own databases (mydatabase, shop): never touch them. Tests use climate_hazard_test_* and drop them; local runs use climate_hazard_analyzer_dev.

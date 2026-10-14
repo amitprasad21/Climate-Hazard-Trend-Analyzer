@@ -6,6 +6,7 @@ import dns.asyncresolver
 import pytest
 from pymongo.errors import ConfigurationError, OperationFailure, ServerSelectionTimeoutError
 
+from app import settings as settings_module
 from app.database import Database, DatabaseUnavailable, get_database
 
 
@@ -150,5 +151,21 @@ def test_actual_driver_dns_is_cancellable_and_does_not_block_loop(db_settings, m
         finally:
             pulse.cancel()
             await asyncio.gather(pulse, return_exceptions=True)
+            await database.close()
+    asyncio.run(scenario())
+
+
+def test_local_development_client_skips_tls_and_atlas_keeps_it(db_settings):
+    async def scenario():
+        local = settings_module.DatabaseSettings(
+            mongodb_uri="mongodb://127.0.0.1:27017/", mongodb_local_development=True
+        )
+        for config, tls in ((local, False), (db_settings, True)):
+            client = fake_client()
+            factory = Mock(return_value=client)
+            database = Database(config, factory)
+            await database.open()
+            options = factory.call_args.kwargs
+            assert options["tls"] is tls and options["tz_aware"] is True
             await database.close()
     asyncio.run(scenario())

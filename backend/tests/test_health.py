@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.database import DatabaseUnavailable
 from app.main import create_app
+from tests.fakes import no_services
 
 
 class FakeDatabase:
@@ -26,7 +27,8 @@ class FakeDatabase:
 
 
 def client_for(db_settings, database):
-    return TestClient(create_app(db_settings, lambda config: database))
+    app = create_app(db_settings, lambda config: database, services_factory=no_services)
+    return TestClient(app)
 
 
 def test_liveness_performs_no_database_io(db_settings):

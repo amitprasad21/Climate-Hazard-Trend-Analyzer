@@ -1,17 +1,97 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState } from "react";
+import type { RegionResult } from "./api/types";
+import { AnalysisControls, placeLabel } from "./components/AnalysisControls";
+import { ErrorPanel } from "./components/ErrorPanel";
+import { ResultsView } from "./components/ResultsView";
+import {
+  EMPTY_DRAFT,
+  FIELD_ORDER,
+  latestCompleteYear,
+  validate,
+  type Draft,
+  type DraftField,
+  type FieldErrors,
+} from "./form";
+import { useAnalysis, type AnalysisState } from "./hooks/useAnalysis";
+import { useRegionSearch } from "./hooks/useRegionSearch";
 
-const EARLIEST_YEAR = 1940;
-// Guidance only: the backend applies the authoritative last-complete-year rule.
-const LATEST_YEAR_HINT = new Date().getUTCFullYear() - 1;
+function statusMessage(state: AnalysisState, dirty: boolean): string {
+  switch (state.phase) {
+    case "loading": {
+      const { region, period } = state.request;
+      return `Analyzing historical weather for ${region.label}, ${period.start_year}–${period.end_year}. A new location can take up to a minute.`;
+    }
+    case "success": {
+      const { summary, period } = state.result;
+      return `Analysis complete: ${summary.event_count} heatwave events in ${period.start_year}–${period.end_year}.`;
+    }
+    case "error":
+      return `Analysis failed: ${state.error.message}`;
+    default:
+      return dirty ? "Settings changed. Run the analysis again to update the results." : "";
+  }
+}
 
 export function DashboardPage() {
-  const [notice, setNotice] = useState("");
+  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [dirty, setDirty] = useState(false);
+  const analysis = useAnalysis();
+  const search = useRegionSearch();
+  const latestYear = latestCompleteYear(new Date());
+  const fieldRefs = {
+    label: useRef<HTMLInputElement>(null),
+    latitude: useRef<HTMLInputElement>(null),
+    longitude: useRef<HTMLInputElement>(null),
+    startYear: useRef<HTMLInputElement>(null),
+    endYear: useRef<HTMLInputElement>(null),
+  };
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNotice("Analysis requests are not connected in this build yet. Nothing was calculated.");
+  function invalidateResult() {
+    if (analysis.state.phase !== "idle") {
+      analysis.cancel();
+      setDirty(true);
+    }
   }
 
+  function update(changes: Partial<Draft>) {
+    setDraft((current) => ({ ...current, ...changes }));
+    setErrors((current) => {
+      const next = { ...current };
+      for (const field of Object.keys(changes) as DraftField[]) delete next[field];
+      return next;
+    });
+    invalidateResult();
+  }
+
+  function selectPlace(place: RegionResult) {
+    update({
+      label: placeLabel(place),
+      latitude: String(place.latitude),
+      longitude: String(place.longitude),
+    });
+  }
+
+  function submit() {
+    const { errors: found, request } = validate(draft, new Date());
+    setErrors(found);
+    if (!request) {
+      const first = FIELD_ORDER.find((field) => found[field]);
+      if (first) fieldRefs[first].current?.focus();
+      return;
+    }
+    setDirty(false);
+    void analysis.submit(request);
+  }
+
+  function retry() {
+    if (analysis.state.phase !== "error") return;
+    const request = analysis.state.request;
+    analysis.cancel();
+    void analysis.submit(request);
+  }
+
+  const { state } = analysis;
   return (
     <div className="page">
       <header className="page-header">
@@ -24,73 +104,40 @@ export function DashboardPage() {
       <main className="dashboard">
         <section className="panel" aria-labelledby="settings-heading">
           <h2 id="settings-heading">Analysis settings</h2>
-          <form className="controls" onSubmit={handleSubmit} noValidate>
-            <div className="field-groups">
-              <fieldset>
-                <legend>Location</legend>
-                <div className="field">
-                  <label htmlFor="label">Location name</label>
-                  <input id="label" name="label" type="text" maxLength={120} autoComplete="off" required />
-                </div>
-                <div className="field-row">
-                  <div className="field">
-                    <label htmlFor="latitude">Latitude</label>
-                    <input id="latitude" name="latitude" type="number" inputMode="decimal"
-                      min={-90} max={90} step="any" aria-describedby="latitude-hint" required />
-                    <span id="latitude-hint" className="hint">−90 to 90</span>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="longitude">Longitude</label>
-                    <input id="longitude" name="longitude" type="number" inputMode="decimal"
-                      min={-180} max={180} step="any" aria-describedby="longitude-hint" required />
-                    <span id="longitude-hint" className="hint">−180 to 180</span>
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Hazard and period</legend>
-                <div className="field">
-                  <label htmlFor="hazard">Hazard</label>
-                  <select id="hazard" name="hazard" defaultValue="heatwave">
-                    <option value="heatwave">Heatwave</option>
-                  </select>
-                </div>
-                <div className="field-row">
-                  <div className="field">
-                    <label htmlFor="start_year">Start year</label>
-                    <input id="start_year" name="start_year" type="number" inputMode="numeric"
-                      min={EARLIEST_YEAR} max={LATEST_YEAR_HINT} step={1} aria-describedby="period-hint" required />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="end_year">End year</label>
-                    <input id="end_year" name="end_year" type="number" inputMode="numeric"
-                      min={EARLIEST_YEAR} max={LATEST_YEAR_HINT} step={1} aria-describedby="period-hint" required />
-                  </div>
-                </div>
-                <span id="period-hint" className="hint">
-                  Full calendar years from {EARLIEST_YEAR}, up to 50 years.
-                </span>
-              </fieldset>
-            </div>
-
-            <div className="actions">
-              <button className="primary-action" type="submit">Analyze trends</button>
-              <p className="form-notice" role="status">{notice}</p>
-            </div>
-          </form>
+          <AnalysisControls
+            draft={draft}
+            errors={errors}
+            latestYear={latestYear}
+            pending={state.phase === "loading"}
+            search={search.state}
+            fieldRefs={fieldRefs}
+            onChange={(field, value) => update({ [field]: value })}
+            onSearch={(query) => void search.run(query)}
+            onSelectPlace={selectPlace}
+            onSubmit={submit}
+            onCancel={analysis.cancel}
+          />
+          <p className="form-notice" role="status">
+            {statusMessage(state, dirty)}
+          </p>
         </section>
 
-        <section className="panel" aria-labelledby="results-heading">
+        <section className="panel" aria-labelledby="results-heading" aria-busy={state.phase === "loading"}>
           <h2 id="results-heading">Results</h2>
-          <div className="empty-state">
-            <p className="empty-title">No analysis yet</p>
-            <p>
-              Choose a location and period, then select Analyze trends. A heatwave is three or more
-              consecutive days with a daily maximum temperature above that location's 1991–2020
-              95th percentile.
-            </p>
-          </div>
+          {state.phase === "success" && <ResultsView result={state.result} />}
+          {state.phase === "error" && <ErrorPanel error={state.error} onRetry={retry} />}
+          {state.phase === "loading" && (
+            <p className="empty-state">Fetching and analysing daily maxima. Results appear here when ready.</p>
+          )}
+          {state.phase === "idle" && (
+            <div className="empty-state">
+              <p className="empty-title">{dirty ? "Settings changed" : "No analysis yet"}</p>
+              <p>
+                Choose a location and period, then select Analyze trends. A heatwave is three or more consecutive
+                days with a daily maximum temperature above that location's 1991–2020 95th percentile.
+              </p>
+            </div>
+          )}
         </section>
       </main>
     </div>

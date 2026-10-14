@@ -17,6 +17,7 @@ from pydantic import (
     model_validator,
 )
 
+CONTRACT_VERSION = "0.2"
 EARLIEST_YEAR = 1940
 ProviderName = Literal["nasa_power", "open_meteo"]
 MAX_PERIOD_YEARS = 50
@@ -175,6 +176,171 @@ class Source(OutputModel):
         return self
 
 
+UtcDatetime = Annotated[AwareDatetime, AfterValidator(_utc)]
+Nullable = Annotated[float, Field(allow_inf_nan=False)] | None
+
+
+class Coverage(OutputModel):
+    expected_days: int
+    valid_days: int
+    missing_days: int
+    invalid_days: int
+    duplicate_dates: int
+    coverage_fraction: Annotated[float, Field(ge=0, le=1)]
+
+    @model_validator(mode="after")
+    def disjoint_counts(self) -> Self:
+        if self.valid_days + self.missing_days + self.invalid_days != self.expected_days:
+            raise ValueError("valid + missing + invalid must equal expected")
+        return self
+
+
+class YearCoverage(Coverage):
+    year: int
+    eligible: bool
+    excluded_reasons: list[str]
+
+
+class Event(OutputModel):
+    start_date: date
+    end_date: date
+    duration_days: int
+    mean_excess_c: float
+    max_excess_c: float
+    boundary_censored: bool
+
+    @model_validator(mode="after")
+    def inclusive_duration(self) -> Self:
+        if (self.end_date - self.start_date).days + 1 != self.duration_days:
+            raise ValueError("duration_days must equal the inclusive date span")
+        return self
+
+
+class Annual(OutputModel):
+    year: int
+    eligible: bool
+    coverage_fraction: float
+    event_count: int | None
+    mean_duration_days: Nullable
+    max_duration_days: int | None
+    heatwave_days: int | None
+    mean_tmax_c: Nullable
+    tmax_anomaly_c: Nullable
+    frequency_rolling_5y: Nullable
+
+
+class ResultWarning(OutputModel):
+    code: str
+    message: str
+    years: list[int]
+
+
+class Evidence(OutputModel):
+    metric: str
+    value: float
+    unit: str
+    years: list[int]
+
+
+class Insight(OutputModel):
+    code: str
+    text: str
+    evidence: list[Evidence]
+
+
+class Summary(OutputModel):
+    event_count: int
+    mean_duration_days: Nullable
+    threshold_c: float
+    trend_direction: Literal["increasing", "decreasing", "flat", "insufficient_data"]
+    frequency_slope_per_year: Nullable
+    trend_year_count: int
+
+
+class Methodology(OutputModel):
+    version: Literal["heatwave-v1"] = "heatwave-v1"
+    baseline_start: Literal["1991-01-01"] = "1991-01-01"
+    baseline_end: Literal["2020-12-31"] = "2020-12-31"
+    percentile: Literal[95] = 95
+    percentile_method: Literal["linear"] = "linear"
+    minimum_consecutive_days: Literal[3] = 3
+    comparison: Literal["strictly_greater"] = "strictly_greater"
+    daily_timezone: Literal["UTC"] = "UTC"
+    aggregation: Literal["point", "nine_point_cosine_weighted_mean"] = "point"
+    anomaly_reference: Literal["baseline_mean_daily_maximum"] = "baseline_mean_daily_maximum"
+    trend_method: Literal["ordinary_least_squares_descriptive"] = (
+        "ordinary_least_squares_descriptive"
+    )
+    significance_tested: Literal[False] = False
+
+
+class DataQuality(OutputModel):
+    baseline: Coverage
+    analysis: Coverage
+    years: list[YearCoverage]
+    eligible_year_count: int
+
+
+class CacheInfo(OutputModel):
+    hit: bool
+    generated_at: UtcDatetime
+    expires_at: UtcDatetime
+
+
+class AnalysisResponse(OutputModel):
+    contract_version: Literal["0.2"]
+    request_id: str
+    region: Annotated[PointRegion | BoxRegion, Field(discriminator="kind")]
+    period: Period
+    status: Literal["complete", "partial"]
+    summary: Summary
+    annual: list[Annual]
+    events: list[Event]
+    insights: list[Insight]
+    warnings: list[ResultWarning]
+    methodology: Methodology
+    data_quality: DataQuality
+    source: Source
+    cache: CacheInfo
+
+    @model_validator(mode="after")
+    def invariants(self) -> Self:
+        years = list(range(self.period.start_year, self.period.end_year + 1))
+        if [row.year for row in self.annual] != years:
+            raise ValueError("annual must hold one sorted row per requested year")
+        counted = sum(row.event_count or 0 for row in self.annual if row.eligible)
+        if not self.summary.event_count == len(self.events) == counted:
+            raise ValueError("event counts disagree")
+        if any(
+            a.end_date >= b.start_date for a, b in zip(self.events, self.events[1:], strict=False)
+        ):
+            raise ValueError("events must be sorted and non-overlapping")
+        if self.data_quality.eligible_year_count != self.summary.trend_year_count:
+            raise ValueError("eligible year counts disagree")
+        return self
+
+
+SearchQuery = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=2, max_length=100),
+    AfterValidator(_plain_text),
+]
+
+
+class RegionResult(OutputModel):
+    id: int
+    name: str
+    admin1: str | None
+    country: str
+    country_code: str
+    latitude: Latitude
+    longitude: Longitude
+
+
+class RegionSearch(OutputModel):
+    results: Annotated[list[RegionResult], Field(max_length=10)]
+
+
 class Health(BaseModel):
     status: Literal["ok"] = "ok"
     api_version: Literal["v1"] = "v1"
@@ -237,7 +403,7 @@ def _field(error: Mapping[str, Any]) -> str:
     if error["type"] == "json_invalid":
         return "body"
     parts = list(error["loc"])
-    if parts[:1] == ["body"]:
+    if parts[:1] in (["body"], ["query"]):
         parts = parts[1:]
     # Discriminated unions insert the tag into loc; paths mirror the wire shape instead.
     if len(parts) > 1 and parts[0] == "region" and parts[1] in REGION_KINDS:

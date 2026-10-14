@@ -1,12 +1,12 @@
 # Project state
 
-Last reviewed: 2026-10-14 (Asia/Calcutta). **Backend foundation, contract 0.2 and provider adapters verified with deterministic tests; frontend shell runs; live Atlas, climate engine, persistence and analysis UI are pending.**
+Last reviewed: 2026-10-14 (Asia/Calcutta). **The point-analysis application works end to end in a real browser (live NASA POWER, local MongoDB). Atlas live ping, region boxes, FE-005 screenshot review, observability, CI and deployment remain.**
 
 ## Verified facts
 
 - Initial documentation foundation DOC-001 was checked; private PDF/master prompts and all five requested upstream tools were inspected. No optional plugin, design workspace or gateway was installed.
 - Backend now contains settings, PyMongo async lifecycle and health-route drafts, manifest/lock, an isolated virtual environment and ignored local environment pointing to the original secret file. No secrets copied or printed.
-- 2026-10-14: 142 deterministic backend tests (settings, Atlas lifecycle, health, request/error/source contract, provider adapters) pass with Ruff, compileall and offline lock checks; the 80-test suite also passed on Python 3.12.3. They mock MongoDB/HTTP and block external network. A separate live smoke of both providers passed; no cache, climate or end-to-end tests exist.
+- 2026-10-14: 261 backend tests pass (255 deterministic + 6 on a real local MongoDB). Live E2E (NASA POWER → MongoDB → engine → cache, New Delhi 1995–2024): cold 7.0 s, cached 7.7 ms. OSV finds no Python advisories; npm audit 0.
 - Direct no-key NASA POWER and Open-Meteo probes for 1990–2020 returned all 11,323 daily values at the test point with expected Celsius/UTC conventions. They do not prove an implemented adapter or climate result.
 - An earlier live Atlas ping failed with network_or_availability. The Atlas password was exposed in a prior conversation and must be rotated before any new live attempt; none was made this session. No successful connection, readiness, persistence or index evidence.
 - One root Git repository (branch `main`, no commits, no remote) contains frontend, backend and docs; no nested repositories. Secrets/caches are ignored. No commits/pushes, server/public listener, CI or deployment.
@@ -24,8 +24,8 @@ DOC-002 and BE-001 are DONE. BE-009 is BLOCKED only on the live ping. DOC-004 is
 
 ## Gaps and next work
 
-No fallback selector, repository/cache, climate engine, geocoding/analysis endpoint or dashboard exists. All nine viewports, visual/browser/accessibility checks and full frontend-backend behavior are unverified. No visual reference image was supplied.
+No bbox sampling, telemetry, CI or deployment exists. All nine viewports, visual/browser/accessibility checks and full frontend-backend behavior are unverified. No visual reference image was supplied.
 
-BE-003 provider adapters and FE-001 frontend shell are DONE. Next: BE-010 whole-source selector and BE-002 pure science; FE-002 controls/request lifecycle can start with fixtures. BE-009's live ping follows Atlas password rotation. Significant implementation follows the concrete planning/approval gate; existing approvals remain valid for unchanged scope.
+Backend BE-001/002/003/004/005/007/008/010 and FE-001/002/003 are DONE; FE-005 is IN_PROGRESS. Next: BE-006/FE-004 region boxes, BE-011 observability, REL-002 CI, then deployment (REL-001). BE-009's live ping follows Atlas password rotation. Significant implementation follows the concrete planning/approval gate; existing approvals remain valid for unchanged scope.
 
 Deployment entitlement, host/accounts, repository remotes/shared-document ownership and CI are unresolved. Deferred queues, breakers, replicas and formal significance need a justified future task/evidence, not installation now.

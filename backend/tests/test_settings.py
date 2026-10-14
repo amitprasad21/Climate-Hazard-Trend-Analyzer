@@ -105,3 +105,25 @@ def test_secret_repr_and_provider_safety(tmp_path):
         "WEATHER_FALLBACK_PROVIDERS=open_meteo,nasa_power,open_meteo\n"
     )
     assert load_weather_settings(local).provider_order == ("nasa_power", "open_meteo")
+
+
+@pytest.mark.parametrize("uri", [
+    "mongodb://127.0.0.1:27017/", "mongodb://localhost:27017", "mongodb://[::1]:27017/",
+])
+def test_loopback_uri_needs_explicit_local_development(uri):
+    with pytest.raises(ValidationError):
+        DatabaseSettings(mongodb_uri=uri)
+    assert DatabaseSettings(mongodb_uri=uri, mongodb_local_development=True).is_local
+
+
+@pytest.mark.parametrize("uri", [
+    "mongodb://10.0.0.5:27017/", "mongodb://evil.example/", "mongodb://127.0.0.1,evil.example/",
+    "mongodb+srv://127.0.0.1/",
+])
+def test_local_development_still_rejects_non_loopback_hosts(uri):
+    with pytest.raises(ValidationError):
+        DatabaseSettings(mongodb_uri=uri, mongodb_local_development=True)
+
+
+def test_atlas_uri_is_not_local_even_with_flag():
+    assert DatabaseSettings(mongodb_uri=URI, mongodb_local_development=True).is_local is False

@@ -133,15 +133,24 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | DOC-002 | DONE | Single root repository verified; no commits/remote authorized |
 | DOC-004 | DONE | User approved ADR-017; contract 0.2 and backend Source schema tested |
 | BE-001 | DONE | Strict request/error/health schemas; 80 backend tests pass |
+| BE-002 | DONE | Pure heatwave-v1 engine; 27 tests, 12 rule mutants caught |
 | BE-003 | DONE | NASA POWER and Open-Meteo adapters; mocked tests and live smoke |
+| BE-004 | DONE | Geocoding search with bounded cache; live smoke |
+| BE-005 | DONE | MongoDB repositories verified on real local MongoDB |
+| BE-007 | DONE | Persisted point analysis endpoint; live E2E cold and cached |
+| BE-008 | DONE | CORS, body/media limits, rate/capacity limits, safe 500s |
+| BE-010 | DONE | Whole-source selector with ordered fallback |
 | BE-009 | BLOCKED | 42 deterministic tests pass; live ping awaits Atlas password rotation |
 | FE-001 | DONE | Vite/React/TS monochrome shell; 7 tests, build, nine-size overflow and keyboard smoke |
+| FE-002 | DONE | Search, validation, request lifecycle; live browser run |
+| FE-003 | DONE | Backend-driven metrics, charts, provenance and errors |
+| FE-005 | IN_PROGRESS | Nine sizes measured, axe clean; screenshot review pending (pane hidden) |
 
 All other application/release tasks are TODO. No cache, fallback selector, analysis or UI is complete. Current scope is the expressly requested AI-team workflow/document integration following the confirmed design-only update; the original connectivity/provider implementation remains unfinished and visible.
 
 Next ordered work after this phase:
 
-1. BE-001 is DONE. BE-009 deterministic lifecycle is verified; its live ping waits for the rotated Atlas password. BE-003 adapters are DONE. Next: BE-010 whole-source selector, BE-002 pure science, and FE-001 shell.
+1. BE-001 is DONE. BE-009 deterministic lifecycle is verified; its live ping waits for the rotated Atlas password. The point-analysis backend (BE-002/003/004/005/007/008/010) is DONE and verified against live NASA POWER and a local MongoDB. Next: FE-002 controls and request lifecycle, FE-003 results, FE-005 acceptance, then BE-006/FE-004 boxes.
 2. FE-001: establish the UI shell independently from backend science. BE-003 implements normalized no-key adapters; BE-010 adds whole-source fallback; BE-004 provides lookup.
 3. Resolve DOC-004 before exposing NASA analysis; complete BE-002 pure science and BE-005 persistence in their own authorized slices. BE-007 integrates the full point path, then BE-008 hardens it.
 4. FE-002 final integration depends on lookup and the agreed contract; fixture-based controls/state work need not wait. FE-003 consumes real analysis, FE-005 verifies all viewports/accessibility/performance.

@@ -15,14 +15,13 @@ Implemented settings are limited to database/weather configuration in app/settin
 
 | Variable | Required/default | Purpose / current status |
 |---|---|---|
-| `APP_ENV` | development | development/test/production validation |
 | `MONGODB_URI` | required for runtime; no checked-in value | Server-side database connection |
 | `MONGODB_DATABASE` | climate_hazard_analyzer | Restricted application database; setting exists |
 | `MONGODB_ENV_FILE` | optional existing private file path | Only reads MONGODB_URI when not otherwise supplied; no secret copying |
-| `MONGODB_TIMEOUT_MS` | 5000; range 100–30000 | Driver selection/connect/socket/wait-queue/operation timeout; elapsed DNS behavior still requires tests |
-| `ALLOWED_ORIGINS` | explicit local frontend origin in development | Exact origins; production requires explicit list |
-| `LOG_LEVEL` | INFO | No sensitive debug dumps |
-| `WEATHER_PRIMARY_PROVIDER` | nasa_power | Existing selection setting; selector implementation pending |
+| `MONGODB_TIMEOUT_MS` | 5000; range 100–30000 | Driver timeouts plus one total deadline per ping/close (tested) |
+| `MONGODB_LOCAL_DEVELOPMENT` | false | Opt-in: accept only a loopback `mongodb://` URI without TLS for local development |
+| `ALLOWED_ORIGINS` | http://127.0.0.1:5173,http://localhost:5173 | Exact http(s) origins without paths; `*` rejected; production must list its frontend URL (ADR-023) |
+| `WEATHER_PRIMARY_PROVIDER` | nasa_power | First provider tried by the selector |
 | `WEATHER_FALLBACK_PROVIDERS` | open_meteo | Comma-separated known provider names; no arbitrary endpoint |
 | `WEATHER_FALLBACK_ENABLED` | false by default/example; true in local assessment .env | Enable only after access/usage verification |
 | `OPEN_METEO_NONCOMMERCIAL_USE` | false by default; true for local assessment | Required when selecting the free Open-Meteo service; not proof of deployment entitlement |
@@ -32,11 +31,12 @@ Implemented settings are limited to database/weather configuration in app/settin
 | `WEATHER_PROVIDER_MAX_RETRIES` | 1; bounded 0–2 | Transient retries only; setting exists |
 | `WEATHER_TOTAL_TIMEOUT_SECONDS` | 60; bounded 1–90 | Entire selection budget, capped by remaining service deadline |
 | `WEATHER_MIN_COVERAGE_PERCENT` | 95; bounded 95–100 | Additional adapter gate, not a substitute for baseline/month/year quality |
-| `ANALYSIS_TIMEOUT_SECONDS` | 90, bounded | Total request deadline |
-| `UPSTREAM_CONCURRENCY` | 2, bounded | Shared source-request cap |
-| `ANALYSIS_RATE_PER_MINUTE` | 5, bounded | Per-client request limit |
-| `SEARCH_RATE_PER_MINUTE` | 30, bounded | Geocoding protection |
-| `PROVIDER_DAILY_CALL_BUDGET` | 500, conservative provisional | Stop new outbound work before operator budget |
+| `MAX_CONCURRENT_ANALYSES` | 4; 1–64 | Process-wide analysis slots; full → 503 CAPACITY_EXCEEDED |
+| `MAX_BODY_BYTES` | 8192; 1024–65536 | Declared and streamed request body cap → 413 |
+| `TRUSTED_PROXY_HOPS` | 0; 0–5 | Count of trusted proxies appending X-Forwarded-For; 0 ignores the header |
+| `ANALYSIS_RATE_PER_MINUTE` | 5; 1–600 | Per-client fixed one-minute window → 429 with Retry-After |
+| `SEARCH_RATE_PER_MINUTE` | 30; 1–6000 | Geocoding protection |
+| `PROVIDER_DAILY_CALL_BUDGET` | planned, not implemented | Operator budget; the 90 s analysis deadline and 60 s provider budget are fixed constants today |
 
 Startup code validates database/weather settings and attempts a ping. Origin/rate/log/analysis-limit settings in the table remain planned for BE-008/BE-011; do not claim they are enforced yet. [.env.example](../.env.example) exists and contains placeholders only. Root/backend ignore rules exclude .env variants, credential files, keys, virtual environments and caches. No Git repository exists, so repository-specific ignore/secret checks remain a future gate. Process environment overrides local .env; private-file URI is a fallback only. Dotenv interpolation is disabled and only the URI is taken from the external file. Do not enable debug dumps or echo configuration errors with input values. Test settings must use isolated resources, never automatic writes through supplied production credentials.
 

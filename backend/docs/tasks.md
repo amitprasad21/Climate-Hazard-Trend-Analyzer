@@ -1,6 +1,6 @@
 # Backend task tracker
 
-Only settings, database lifecycle and health routes have code; their deterministic tests pass, while live Atlas readiness is unverified. All analysis/provider/cache paths remain planned. Current evidence is recorded per task. Requirements refer to [root PRD](../../PRD.md); test case IDs to [testing](testing.md).
+The point-analysis backend is implemented and tested end to end against a local MongoDB; live Atlas readiness (BE-009) and regional boxes (BE-006) remain. All analysis/provider/cache paths remain planned. Current evidence is recorded per task. Requirements refer to [root PRD](../../PRD.md); test case IDs to [testing](testing.md).
 
 ## BE-001 Minimal API and schema foundation
 
@@ -22,9 +22,9 @@ Blockers: None. Callers must pass a UTC date to `ensure_supported`; BE-007 wires
 
 ## BE-002 Deterministic heatwave engine
 
-Priority: P0. Status: TODO. Requirements: DATA-004, DATA-005, DATA-006, DATA-007, FR-007. Dependencies: BE-001.
+Priority: P0. Status: DONE. Requirements: DATA-004, DATA-005, DATA-006, DATA-007, FR-007. Dependencies: BE-001.
 
-Scope/files: `app/climate.py`, climate schema additions if needed, `tests/test_climate.py`, methodology. Acceptance: full fixed-baseline/run/annual/trend semantics including quality exclusion, cross-year attribution, zero/null and censored boundaries; no significance claims. Verify CLIMATE-BASELINE/RUNS/TREND against independently expected values. Evidence: none.
+Scope/files: `app/climate.py`, climate schema additions if needed, `tests/test_climate.py`, methodology. Acceptance: full fixed-baseline/run/annual/trend semantics including quality exclusion, cross-year attribution, zero/null and censored boundaries; no significance claims. Verify CLIMATE-BASELINE/RUNS/TREND against independently expected values. Evidence: 2026-10-14. app/climate.py implements heatwave-v1 purely (no I/O or clock): linear p95 over valid 1991–2020 days, Fraction-exact 90% year / 80% month gates, strict-exceedance runs ≥3 days, cross-year attribution with apportioned days, boundary censoring, exclusion of runs touching ineligible years, event-weighted means, 5-year rolling counts, integer OLS (≥10 eligible years) and evidence-based insights without significance language. tests/test_climate.py: 27 cases with hand-computed values; 12 of 12 rule mutants caught.
 
 Description: Implement deterministic baseline, events, annual metrics, trend and evidence-derived insights.
 
@@ -32,9 +32,9 @@ Ownership: backend. Concepts: 3, 27, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 76.
 
 Required tests: CLIMATE-BASELINE/RUNS/TREND; significance absence; reproducibility fixtures.
 
-Documents/files: app/climate.py, docs/climate-methodology.md, planned tests/test_climate.py.
+Documents/files: app/climate.py, tests/test_climate.py, docs/climate-methodology.md.
 
-Blockers: Depends on validated schemas; no numerical code exists.
+Blockers: None.
 
 ## BE-003 Historical weather adapter
 
@@ -54,9 +54,9 @@ Blockers: None. The HTTP client is created by the caller (BE-007/BE-010); capaci
 
 ## BE-004 Region lookup
 
-Priority: P1. Status: TODO. Requirements: FR-001. Dependencies: BE-001, BE-003.
+Priority: P1. Status: DONE. Requirements: FR-001. Dependencies: BE-001, BE-003.
 
-Scope/files: geocoding adapter/route, response schema and focused tests. Acceptance: disambiguated labels/coordinates, bounded query/results/cache, no-match differs from outage. Verify E2E-LOCATION adapter/API cases; [official geocoding docs](https://open-meteo.com/en/docs/geocoding-api). Evidence: none.
+Scope/files: geocoding adapter/route, response schema and focused tests. Acceptance: disambiguated labels/coordinates, bounded query/results/cache, no-match differs from outage. Verify E2E-LOCATION adapter/API cases; [official geocoding docs](https://open-meteo.com/en/docs/geocoding-api). Evidence: 2026-10-14. app/providers/geocoding.py queries the fixed Open-Meteo geocoding host (count 10, English), skips malformed entries, canonicalizes coordinates and caps text; app/services/regions.py adds a bounded 24 h case/space-insensitive cache (512 entries) and is disabled unless OPEN_METEO_NONCOMMERCIAL_USE is true (503 SEARCH_UNAVAILABLE). GET /api/v1/regions/search validates q (2–100 trimmed characters, no control characters). tests/test_regions.py: 18 cases. Live adapter smoke: "New Delhi" 2 disambiguated results, "Springfield" capped at 10, no-match returns [].
 
 Description: Provide bounded and disambiguated geographic lookup for accessible selection.
 
@@ -64,15 +64,15 @@ Ownership: backend. Concepts: 23.
 
 Required tests: E2E-LOCATION adapter/API no-match/outage/limits cases.
 
-Documents/files: Planned geocoding adapter/route; docs/API.md and official geocoding docs.
+Documents/files: app/providers/geocoding.py, app/services/regions.py, tests/test_regions.py; official geocoding docs.
 
-Blockers: API foundation and adapter boundary pending; live geocoding not verified.
+Blockers: None. Geocoding shares Open-Meteo's non-commercial terms (REL-001 rechecks deployment).
 
 ## BE-005 MongoDB weather and result repositories
 
-Priority: P0. Status: TODO. Requirements: DATA-003, NFR-005. Dependencies: BE-001, BE-003, BE-009.
+Priority: P0. Status: DONE. Requirements: DATA-003, NFR-005. Dependencies: BE-001, BE-003, BE-009.
 
-Scope/files: two repository modules, lifespan/settings, real-DB integration tests. Acceptance: indexes/validation, idempotent upserts and readback, expiry-aware result/weather caching, version identity and partial-write recovery. Verify DB-CACHE with real isolated MongoDB, not only mocks. Evidence: no persistence tests; credentials were supplied but live connectivity failed. No collections or indexes created.
+Scope/files: two repository modules, lifespan/settings, real-DB integration tests. Acceptance: indexes/validation, idempotent upserts and readback, expiry-aware result/weather caching, version identity and partial-write recovery. Verify DB-CACHE with real isolated MongoDB, not only mocks. Evidence: 2026-10-14. app/repositories/weather.py and analysis.py create collections with $jsonSchema validators, unique (source_key, date) and cache_key indexes and TTL expiry indexes; weather rows upsert idempotently with 30-day valid / 1-hour negative expiry; reads filter on expiry before TTL cleanup and return a series only when every requested day is present; cache entries are checked against method and contract versions. tests/test_repositories.py: 6 cases against a real local MongoDB 8.3.4 (opt-in CLIMATE_TEST_MONGODB_URI, throwaway databases dropped afterwards), passing three times, including validator rejection, partial-write recovery, expiry before TTL, source-key isolation and an index-backed query plan. Atlas itself is unverified (BE-009).
 
 Description: Build proposed Atlas observation/result repositories only in the later authorized persistence slice.
 
@@ -80,9 +80,9 @@ Ownership: backend. Concepts: 30, 35, 36, 37, 38, 39, 40, 41, 43, 44, 63, 77.
 
 Required tests: DB-CACHE with isolated real MongoDB; key mutations, expiry, uniqueness, partial writes, restart and query explain.
 
-Documents/files: Planned app/repositories/; docs/database.md and data-pipeline.md.
+Documents/files: app/repositories/, tests/test_repositories.py, docs/database.md.
 
-Blockers: Successful Atlas connectivity and isolated test database required; supplied credentials are not permission for schema creation in this phase.
+Blockers: None. Atlas-specific behaviour is verified with BE-009's live ping.
 
 ## BE-006 Bounded regional sampling
 
@@ -102,9 +102,9 @@ Blockers: Point flow and resource safeguards must pass first.
 
 ## BE-007 Persisted point analysis endpoint
 
-Priority: P0. Status: TODO. Requirements: FR-004, DATA-003, DATA-007. Dependencies: BE-002, BE-005, BE-010, DOC-004.
+Priority: P0. Status: DONE. Requirements: FR-004, DATA-003, DATA-007. Dependencies: BE-002, BE-005, BE-010, DOC-004.
 
-Scope/files: analysis service, route/lifespan wiring, response tests and integration smoke. Acceptance: validated request -> cache/source -> persist/reread -> engine -> cache -> contract result; concurrent identical misses coalesce within one process; source timestamps and per-request ID/label remain correct. Verify E2E-ANALYSIS twice plus CONTRACT-OUTPUT, DB-CACHE and failure recovery. Evidence: none.
+Scope/files: analysis service, route/lifespan wiring, response tests and integration smoke. Acceptance: validated request -> cache/source -> persist/reread -> engine -> cache -> contract result; concurrent identical misses coalesce within one process; source timestamps and per-request ID/label remain correct. Verify E2E-ANALYSIS twice plus CONTRACT-OUTPUT, DB-CACHE and failure recovery. Evidence: 2026-10-14. app/services/analysis.py validates before I/O, checks the result cache, coalesces identical misses with bounded per-key locks, loads stored weather or fetches, saves and re-reads from MongoDB (readback failure → STORAGE_UNAVAILABLE), runs the engine, builds a contract 0.2 payload (rounding per contract, source warnings), validates it against AnalysisResponse invariants before caching, and expires results at min(24 h, earliest weather expiry). Errors are never cached; cache hits get a fresh request ID and the current label. POST /api/v1/analyses/heatwaves maps INSUFFICIENT_BASELINE/DATA, PROVIDER_ERROR, UPSTREAM_TIMEOUT and ANALYSIS_TIMEOUT. Tests: 14 service and 9 API cases. Live E2E twice (real NASA POWER plus local MongoDB, New Delhi 1995–2024): cold 7.0 s, repeat 7.7 ms from cache with identical science, new request ID and label; 12,419 daily rows stored.
 
 Description: Integrate cache, whole-source ingestion, persisted readback and pure engine into point analysis.
 
@@ -112,15 +112,15 @@ Ownership: backend. Concepts: 6, 22, 23, 26, 30, 37, 39, 42, 53, 77, 80.
 
 Required tests: E2E-ANALYSIS twice, DB-CACHE, CONTRACT-OUTPUT, FAILURE-PIPELINE; concurrent miss and provenance cases.
 
-Documents/files: Planned app/services/analysis.py, analysis route/repositories; docs/data-pipeline.md.
+Documents/files: app/services/analysis.py, app/main.py, app/schemas.py, tests/test_analysis_service.py, tests/test_analysis_api.py.
 
-Blockers: Engine, repositories, fallback and approved source contract are prerequisites.
+Blockers: None.
 
 ## BE-008 Request limits and production errors
 
-Priority: P0. Status: TODO. Requirements: SEC-002, SEC-004, NFR-005. Dependencies: BE-007, BE-004.
+Priority: P0. Status: DONE. Requirements: SEC-002, SEC-004, NFR-005. Dependencies: BE-007, BE-004.
 
-Scope/files: limiter/budget middleware, settings, safe error handlers and focused tests. Acceptance: validated proxy identity, bounded maps/concurrency/deadlines, exact CORS on errors, safe logs, no persistence bypass, 429/503/504 recovery. Verify SECURITY-LOAD/BOUNDARY and dependency advisory check for the actual lockfile. Evidence: none.
+Scope/files: limiter/budget middleware, settings, safe error handlers and focused tests. Acceptance: validated proxy identity, bounded maps/concurrency/deadlines, exact CORS on errors, safe logs, no persistence bypass, 429/503/504 recovery. Verify SECURITY-LOAD/BOUNDARY and dependency advisory check for the actual lockfile. Evidence: 2026-10-14. app/security.py: request-context middleware (request ID and no-store on every response, 415 for non-JSON bodies, 413 for declared or streamed bodies over 8 KiB, safe 500 envelope inside CORS), fixed-window per-client limits (5 analyses and 30 searches per minute, bounded client map, Retry-After), capacity guard (503 CAPACITY_EXCEEDED), and X-Forwarded-For trusted only with TRUSTED_PROXY_HOPS. Exact CORS allowlist from ALLOWED_ORIGINS covers errors, exposes X-Request-ID/Retry-After, no credentials. The app is served with `uvicorn --factory`, so importing it has no side effects. tests/test_hardening.py: 17 cases; 8 of 8 guard mutants caught. OSV advisory query for all 26 locked Python packages: no advisories (frontend npm audit: 0).
 
 Description: Implement safe errors, input/egress limits, proxy identity, exact CORS and bounded work.
 
@@ -128,9 +128,9 @@ Ownership: backend. Concepts: 29, 42, 46, 50, 65, 66, 67, 68, 69.
 
 Required tests: SECURITY-BOUNDARY/LOAD; leak, SSRF/redirect, quota, cancellation and map cleanup tests.
 
-Documents/files: Planned middleware/limiter/error handlers; docs/security.md.
+Documents/files: app/security.py, app/main.py, app/settings.py, tests/test_hardening.py, docs/security.md.
 
-Blockers: Core point and lookup paths pending; no production hardening claim.
+Blockers: None. Limits are per process; multiple workers need shared enforcement (ADR-019).
 
 ## BE-009 Atlas connection lifecycle verification
 
@@ -154,13 +154,13 @@ Blockers: Live read-only ping only. Next action: the user rotates the previously
 
 ## BE-010 Whole-source weather fallback
 
-Priority: P0. Status: TODO. Requirements: DATA-001, DATA-002, DATA-007, SEC-002, SEC-003. Dependencies: BE-003.
+Priority: P0. Status: DONE. Requirements: DATA-001, DATA-002, DATA-007, SEC-002, SEC-003. Dependencies: BE-003.
 
 Scope/files: provider selector/settings and HTTP-boundary tests; no database schema changes.
 
 Acceptance: validate user request before I/O; choose only source eligible for complete baseline and selected dates; NASA preferred for supported periods; Open-Meteo enabled only for permitted no-key usage; timeout/temporary HTTP/malformed or unusable primary triggers ordered fallback within total budget; fallback obtains the entire required dataset with one provenance; invalid input never triggers fallback. All-provider failures are controlled; failures cannot be represented as successful cached analyses; adapter-level tests do not claim persistence.
 
-Evidence: both adapters exist and are tested (BE-003); no selector exists. Cache-reuse and failure-not-cached integration acceptance belongs to BE-007 after repositories/engine exist.
+Evidence: 2026-10-14. app/selector.py merges baseline and analysis into one or two intervals (at most 80 distinct years), filters providers by coverage start (NASA 1981, ERA5 1940) and enabled fallback, and selects one provider for every interval: any ProviderError or <95% valid data moves the whole dataset to the next provider; storage errors and cancellation propagate. tests/test_selector.py: 19 cases; 5 of 5 mutants caught (including fallback on any exception).
 
 Description: Implement ordered whole-source fallback while preserving data meaning.
 
@@ -170,7 +170,7 @@ Required tests: PROVIDER-FALLBACK and QUALITY-SOURCE, no-key config tests; cache
 
 Documents/files: Planned selector and provider tests; docs/data-pipeline.md.
 
-Blockers: None for implementation; free Open-Meteo eligibility must be rechecked for any deployment.
+Blockers: None for implementation; Open-Meteo deployment eligibility is a REL-001 check.
 
 ## BE-011 Observability, performance and operational readiness
 

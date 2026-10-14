@@ -1,6 +1,6 @@
 # Frontend state
 
-Reviewed 2026-10-14. FE-001 is DONE: Vite/React/TypeScript shell with monochrome tokens, semantic form and idle results state; tests, typecheck, lint and build pass. No request hook, API client, results rendering or charts exist; FE-002 onward is TODO.
+Reviewed 2026-10-14. FE-001, FE-002 and FE-003 are DONE: the dashboard searches places, validates input, runs analyses against the real API with stale-response protection, and renders metrics, three charts, provenance, quality, insights and errors. FE-005 is IN_PROGRESS (screenshot review and interaction profiling pending); FE-004 (boxes) is TODO.
 
 Planned state ownership: page owns draft inputs; request hook owns immutable submitted parameters, active request token/controller, phase, result and safe error; presentation receives props. No global store.
 

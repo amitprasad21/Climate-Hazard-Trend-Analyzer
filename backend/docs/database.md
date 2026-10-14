@@ -1,6 +1,6 @@
 # MongoDB model
 
-Planned collections, not created. Connectivity code exists separately from repository/schema design. A live Atlas ping using the supplied credentials file failed with network_or_availability; no successful connection, write permission or schema operation is verified. Keep an ordinary document model with explicit indexes; no generic query endpoint or user-supplied MongoDB expressions. BE-009 owns connection verification; BE-005 owns later explicitly scoped persistence implementation.
+Implemented in app/repositories/ (BE-005) and verified against a real local MongoDB 8.3.4; Atlas pending BE-009. Connectivity code exists separately from repository/schema design. A live Atlas ping using the supplied credentials file failed with network_or_availability; no successful connection, write permission or schema operation is verified. Keep an ordinary document model with explicit indexes; no generic query endpoint or user-supplied MongoDB expressions. BE-009 owns connection verification; BE-005 owns later explicitly scoped persistence implementation.
 
 ## daily_weather
 

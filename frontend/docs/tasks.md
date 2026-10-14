@@ -20,9 +20,9 @@ Blockers: None. Not covered: a visual reference image was never supplied, and th
 
 ## FE-002 Accessible controls and request lifecycle
 
-Priority: P0. Status: TODO. Requirements: FR-001, FR-002, FR-003, FR-008, NFR-006. Dependencies: FE-001, BE-004.
+Priority: P0. Status: DONE. Requirements: FR-001, FR-002, FR-003, FR-008, NFR-006. Dependencies: FE-001, BE-004.
 
-Scope/files: controls, request hook, API client/types, interaction tests. Acceptance: Heatwave default, usable location/year selection, clear validation, actual progress/error/idle states and duplicate protection; parameter edits ignore stale results and errors. Verify UI-LIFECYCLE/CONTRACT-INPUT and E2E-LOCATION. Synthetic responses are test-only. Evidence: none.
+Scope/files: controls, request hook, API client/types, interaction tests. Acceptance: Heatwave default, usable location/year selection, clear validation, actual progress/error/idle states and duplicate protection; parameter edits ignore stale results and errors. Verify UI-LIFECYCLE/CONTRACT-INPUT and E2E-LOCATION. Synthetic responses are test-only. Evidence: 2026-10-14. src/api/client.ts (contract 0.2 types, safe decoding of error envelopes and non-JSON gateway errors, Retry-After, 100 s analysis / 20 s search timeouts), src/hooks/useAnalysis.ts and useRegionSearch.ts (AbortController plus monotonic tokens: late successes and errors after edits are dropped, duplicate submits ignored, unmount aborts), src/form.ts (client guidance mirroring server limits) and src/components/AnalysisControls.tsx (place search with a radio result list, manual coordinates, Heatwave default, native year inputs, field errors with aria-invalid and focus on the first problem, Cancel while pending, live status). 15 interaction tests; 9 of 9 lifecycle mutants caught after adding a race test (a success arriving despite abort). Real browser: search "New Delhi" → choose → 1995–2024 → Analyze reached the live API.
 
 Description: Build accessible selection and a stale-safe request lifecycle with one API boundary.
 
@@ -30,15 +30,15 @@ Ownership: frontend. Concepts: 7, 12, 13, 14, 15, 17, 20, 21, 66, 76, 78, 80.
 
 Required tests: UI-LIFECYCLE, CONTRACT-INPUT/OUTPUT, E2E-LOCATION; late success/error and unmount.
 
-Documents/files: Planned controls/useAnalysis/api client/types; docs/state.md/system.frontend.md.
+Documents/files: src/api/, src/hooks/, src/form.ts, src/components/AnalysisControls.tsx, tests/DashboardPage.test.tsx.
 
-Blockers: Final live lookup and approved source schema required for integration; interaction tests can proceed independently.
+Blockers: None.
 
 ## FE-003 Backend-driven result presentation
 
-Priority: P0. Status: TODO. Requirements: FR-005, FR-006, FR-007, FR-008, FR-009, DATA-007. Dependencies: FE-002, BE-007, BE-008.
+Priority: P0. Status: DONE. Requirements: FR-005, FR-006, FR-007, FR-008, FR-009, DATA-007. Dependencies: FE-002, BE-007, BE-008.
 
-Scope/files: metric/charts/insights/region-context presentation, result tests. Acceptance: all four metrics and three plots use backend data; source/method/period/coverage are explicit; null/zero/partial/no-event states differ; keyboard/table chart details and valid geography alternative work. Verify UI-METRICS/CHARTS/GEOGRAPHY and real E2E-ANALYSIS. Evidence: none.
+Scope/files: metric/charts/insights/region-context presentation, result tests. Acceptance: all four metrics and three plots use backend data; source/method/period/coverage are explicit; null/zero/partial/no-event states differ; keyboard/table chart details and valid geography alternative work. Verify UI-METRICS/CHARTS/GEOGRAPHY and real E2E-ANALYSIS. Evidence: 2026-10-14. src/components/ResultsView.tsx renders backend values only: four metrics (null duration and insufficient trend explained), annual frequency (solid white with markers) with the backend 5-year rolling mean (dashed grey), duration and anomaly charts (hand-built SVG, gaps at null years, data tables), region/source context (requested point, reported grid cell or "not reported", grid size, elevation, no heatmap), data quality, insights, warnings, events table, method and provenance with attribution link. ErrorPanel maps every contract error code. Live browser run against NASA POWER plus local MongoDB showed 64 events, 44.7 °C threshold, decreasing descriptive trend, 3 charts and provenance notes. 4 chart tests plus result assertions in the page tests.
 
 Description: Render one returned analysis consistently as metrics, charts, insights and valid geography.
 
@@ -46,9 +46,9 @@ Ownership: frontend. Concepts: 9, 10, 11, 17, 18, 20, 21, 51, 54, 64, 79.
 
 Required tests: UI-METRICS/CHARTS/GEOGRAPHY, partial/error/no-events and real E2E-ANALYSIS.
 
-Documents/files: Planned result components; docs/screens.md/system.frontend.md and root contract.
+Documents/files: src/components/ResultsView.tsx, LineChart.tsx, ErrorPanel.tsx, src/format.ts, tests/LineChart.test.tsx; docs/screens.md.
 
-Blockers: Real persisted backend and hardened errors pending.
+Blockers: None.
 
 ## FE-004 Bounded-area selection
 
@@ -68,9 +68,9 @@ Blockers: Bounded backend sampler must pass before exposure.
 
 ## FE-005 Responsive and accessible completion
 
-Priority: P0. Status: TODO. Requirements: NFR-002, NFR-003, FR-008. Dependencies: FE-003.
+Priority: P0. Status: IN_PROGRESS. Requirements: NFR-002, NFR-003, FR-008. Dependencies: FE-003.
 
-Scope/files: focused layout/chart fixes, browser tests and evidence docs. Acceptance: all nine widths without page overflow, long/missing/large data and every UI state tested, focus/keyboard/reduced motion/zoom and automated accessibility checks plus manual review. Verify UI-RESPONSIVE/A11Y; fix findings and record browser/screenshots actually reviewed; report production compressed bundle size and measured cold/warm interaction cost, optimizing only demonstrated bottlenecks. Evidence: none.
+Scope/files: focused layout/chart fixes, browser tests and evidence docs. Acceptance: all nine widths without page overflow, long/missing/large data and every UI state tested, focus/keyboard/reduced motion/zoom and automated accessibility checks plus manual review. Verify UI-RESPONSIVE/A11Y; fix findings and record browser/screenshots actually reviewed; report production compressed bundle size and measured cold/warm interaction cost, optimizing only demonstrated bottlenecks. Evidence: 2026-10-14. Measured in the Claude desktop browser pane (Chromium, Vite dev server, live API): no page overflow and no element outside the viewport at all nine sizes in the populated state; controls ≥44 px; metric cards 4 → 2 → 1 rows. A 120-character label and an in-page synthetic stress response (six-digit numbers, null years, long unbroken warning text) passed at 320/768/1920 after fixing a found overflow (long words in result panels). A chart clipping bug under stale resize measurements was found and fixed (viewBox scaling). Keyboard Tab order and white focus-visible outline checked at 320 px; 320 px reflow equals the WCAG 400% zoom case; prefers-reduced-motion rule present. axe-core 4.13 (dev dependency) reports 0 violations in idle, validation, search, populated and error states, with a control test proving detection (colour contrast excluded in jsdom; token pairs checked by the docs checker). Bundle: 77.4 kB gzip JS, 2.4 kB CSS. Warm analysis request 10 ms (23.6 kB); cold server path 7.0 s.
 
 Description: Verify responsive/accessibility/performance acceptance across actual browser states.
 
@@ -78,9 +78,9 @@ Ownership: frontend. Concepts: 16, 17, 19, 21, 71, 81.
 
 Required tests: UI-RESPONSIVE/A11Y at all nine sizes; bundle report and interaction profiling.
 
-Documents/files: Layout/chart fixes and browser evidence; docs/responsiveness.md/testing.md.
+Documents/files: src/styles/global.css, src/components/LineChart.tsx, tests/a11y.test.tsx; docs/responsiveness.md, docs/testing.md.
 
-Blockers: Dashboard absent; no viewport or browser audit has run.
+Blockers: Per-size screenshots were not reviewed and frontend click-to-render time was not profiled: the browser pane was hidden, which pauses rendering and timers. Next action: with the pane visible, capture and review the nine screenshots and profile one cold and one warm interaction.
 
 
 ## Shared workflow checkpoints

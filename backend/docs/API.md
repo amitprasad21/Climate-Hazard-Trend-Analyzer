@@ -1,6 +1,6 @@
 # Backend API implementation guide
 
-**Implemented routes: GET /api/v1/health and GET /api/v1/health/ready only.** Their mocked API tests pass; live readiness is unverified. Request/error/health schemas live in app/schemas.py; no analysis or search route exists. [Shared contract](../../INTEGRATION_CONTRACT.md) is the sole schema authority, including example requests, status codes, nullable fields, units, CORS, caching, limits and error envelope.
+**Implemented routes: GET /api/v1/health, GET /api/v1/health/ready, GET /api/v1/regions/search, POST /api/v1/analyses/heatwaves.** Schemas live in app/schemas.py and guards in app/security.py. Local-MongoDB runs are verified; live readiness against Atlas is pending BE-009. [Shared contract](../../INTEGRATION_CONTRACT.md) is the sole schema authority, including example requests, status codes, nullable fields, units, CORS, caching, limits and error envelope.
 
 Planned: GET `/api/v1/health` (liveness), GET `/api/v1/regions/search` (bounded location lookup), POST `/api/v1/analyses/heatwaves` (synchronous analysis). No retrieval/job endpoint is needed. Point requests precede bbox support; unsupported bbox must return a typed 422 until implemented.
 

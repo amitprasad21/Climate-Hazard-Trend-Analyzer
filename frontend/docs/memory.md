@@ -12,3 +12,6 @@
 - Design-phase user clarification: align design/project documents only; do not start a scaffold for this update. Preserve explicit no-events versus insufficient-data semantics; current API does not allow stale-result fallback. Chart series/status must be distinguished through patterns, markers and labels, not hues. Use #737373 essential control boundaries; #454545 remains decorative.
 
 - [The shared AI workflow](../../docs/ai-development-workflow.md) owns all six role passes and approval/completion gates. Use official version-specific research when Context7 is absent; no team plugin is installed. Keep one visual authority and one viewport evidence log. Significant implementation needs an approved concrete plan; routine edits within existing approval do not need repeated confirmation.
+- Charts are hand-built SVG drawn in a viewBox sized to the last measured width; CSS scales it to 100%, so stale ResizeObserver measurements (hidden tabs pause them) never clip. No chart dependency.
+- Dev proxy: Vite forwards /api to 127.0.0.1:8000; production builds set VITE_API_BASE_URL for the separate API domain (ADR-023).
+- A hidden Claude browser pane pauses rendering, timers and ResizeObserver; layout measurement still works, screenshots and timing do not.

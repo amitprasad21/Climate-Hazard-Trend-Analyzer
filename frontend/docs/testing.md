@@ -1,6 +1,6 @@
 # Frontend verification plan
 
-**FE-001 checks pass (2026-10-14):** `npm test` (7 Vitest/jsdom cases), `npm run typecheck`, `npm run lint`, `npm run build`. UI-DESIGN token checks are automated in tests/tokens.test.ts. No request, chart or end-to-end checks exist yet; see [README](../README.md). Current documentation checks do not count as frontend tests.
+**Checks pass (2026-10-14):** `npm test` (27 Vitest/jsdom cases: tokens, page lifecycle and errors, search, charts, axe accessibility), `npm run typecheck`, `npm run lint`, `npm run build` (77.4 kB gzip JS). Interaction tests use a mocked fetch and synthetic fixtures (tests/fixtures.ts). The live browser run against the real API is recorded under FE-002/FE-003/FE-005 in [tasks](tasks.md). Current documentation checks do not count as frontend tests.
 
 | Case | Required evidence |
 |---|---|

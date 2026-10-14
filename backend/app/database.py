@@ -35,6 +35,12 @@ class Database:
         # Driver timeouts apply per phase (DNS, selection, socket); this caps total awaited I/O.
         self.deadline_seconds = settings.mongodb_timeout_ms / 1000
 
+    _tls_options = {
+        "tls": True,
+        "tlsAllowInvalidCertificates": False,
+        "tlsAllowInvalidHostnames": False,
+    }
+
     async def open(self) -> None:
         if self.client is not None:
             return
@@ -49,9 +55,8 @@ class Database:
                 waitQueueTimeoutMS=self.settings.mongodb_timeout_ms,
                 maxPoolSize=10,
                 minPoolSize=0,
-                tls=True,
-                tlsAllowInvalidCertificates=False,
-                tlsAllowInvalidHostnames=False,
+                tz_aware=True,
+                **({"tls": False} if self.settings.is_local else self._tls_options),
             )
             await self.ping()
         except BaseException as exc:

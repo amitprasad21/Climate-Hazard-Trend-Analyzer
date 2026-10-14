@@ -1,18 +1,18 @@
 # Responsive behavior and evidence
 
-Responsive behavior is a feature requirement. FE-001 idle shell only (2026-10-14, Claude desktop browser pane, Vite dev server): every size below measured `scrollWidth == clientWidth`, no element outside the viewport and controls ≥44 px; keyboard order and focus checked at 320 x 568. Loading/error/result states, zoom, contrast and screenshots per size are **not run**; FE-005 still owns this matrix.
+Responsive behavior is a feature requirement. Measured 2026-10-14 in the Claude desktop browser pane (Chromium) against the live API: idle and populated states at every size, plus synthetic stress data (long label, six-digit numbers, null years, unbroken long text) at 320, 768 and 1920. Two defects were found and fixed: a chart clipped under stale resize measurements, and long unbroken words overflowing result panels. Keyboard order and focus were checked at 320 x 568, and 320 px reflow covers 400% zoom. Screenshots per size were **not** reviewed because the pane was hidden; FE-005 stays open for that.
 
 | Viewport | Required emphasis | Actual status |
 |---|---|---|
-| 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | NOT RUN |
-| 360 x 800 | Touch controls, metric wrapping and plot/table access | NOT RUN |
-| 390 x 844 | Tooltips/focus, region labels and errors | NOT RUN |
-| 430 x 932 | Chart tick density and insight wrapping | NOT RUN |
-| 768 x 1024 | Two-column metrics where viable, stacked narrow plots | NOT RUN |
-| 1024 x 768 | Toolbar wrapping, balanced panels at limited height | NOT RUN |
-| 1280 x 800 | Desktop chart/geography arrangement | NOT RUN |
-| 1440 x 900 | Header density and secondary-chart balance | NOT RUN |
-| 1920 x 1080 | Centered max-width layout without overstretched plots | NOT RUN |
+| 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
+| 360 x 800 | Touch controls, metric wrapping and plot/table access | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 390 x 844 | Tooltips/focus, region labels and errors | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 430 x 932 | Chart tick density and insight wrapping | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 768 x 1024 | Two-column metrics where viable, stacked narrow plots | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
+| 1024 x 768 | Toolbar wrapping, balanced panels at limited height | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 1280 x 800 | Desktop chart/geography arrangement | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 1440 x 900 | Header density and secondary-chart balance | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
+| 1920 x 1080 | Centered max-width layout without overstretched plots | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
 
 Use Grid/Flexbox with fluid sizing, minmax(0,1fr), min-width:0, wrapping text and inputs constrained to their containers. No device detection or separate mobile codebase. The [design system](design.md) defines token values and candidate content thresholds.
 

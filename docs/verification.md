@@ -178,3 +178,66 @@ Browser pane (Claude desktop, Vite dev server via `.claude/launch.json`):
 - **Keyboard:** at 320 x 568, real Tab presses visited the seven controls in reading order, each `:focus-visible` with a 2 px solid white outline. Enter showed the not-connected notice with zero `/api/` requests.
 
 The 320 px screenshot was cropped by the capture (DPR 2 against a 480 px frame); element measurements confirm the layout fits, but per-size visual inspection is not claimed. Not run: zoom/reflow, reduced-motion observation, automated accessibility audit, and loading/error/result states. Those belong to FE-002, FE-003 and FE-005.
+
+## Point-analysis backend (BE-002, BE-010, BE-005, BE-007, BE-004, BE-008), 2026-10-14
+
+Scope: the user asked to complete the project, with deployment last. Each slice was written test-first, then mutation-checked on scratch copies:
+
+| Task | What was built | Tests | Mutants caught |
+|---|---|---|---|
+| BE-002 | heatwave-v1 engine | 27 | 12/12 |
+| BE-010 | whole-source selector | 19 | 5/5 |
+| BE-005 | MongoDB repositories | 6 on real MongoDB | — |
+| BE-007 | analysis service and route | 14 service + 9 API | — |
+| BE-004 | place search | 18 | 3 search guards |
+| BE-008 | request guards | 17 | 5 guards |
+
+The search-guard and request-guard mutants (8 in total) were checked in one run.
+
+Two hand-computed expectations were corrected before implementation:
+- In the climate test, a run that crossed into an excluded year made two of its days valid, so that year had 319 valid days, not 317.
+- In the repository test, the two-day series helper indexed a third day that did not exist.
+
+Real dependencies:
+- **Local MongoDB 8.3.4** on 127.0.0.1:27017, standalone. It holds the user's own `mydatabase` and `shop` databases, which were left untouched. Repository tests used throwaway `climate_hazard_test_*` databases, dropped afterwards and confirmed by listing databases. Local runs used `climate_hazard_analyzer_dev`.
+- **Loopback MongoDB setting.** An opt-in `MONGODB_LOCAL_DEVELOPMENT` accepts only loopback `mongodb://` URIs; tests show non-loopback hosts are still rejected. Atlas behaviour itself is still unverified (BE-009, password rotation).
+
+Live end-to-end, separate from the deterministic suite: the factory-served API with live NASA POWER and the local MongoDB. Health and readiness returned 200. New Delhi 1995–2024 completed cold in 7.0 s; the repeat came from the cache in 7.7 ms with identical science, a new request ID and the new label. The dev database held 12,419 daily rows with `source_day` and `expiry` indexes. The response reported NASA POWER/MERRA-2, resolved null, and warnings UTC_CALENDAR_DAYS, GRID_CELL_REPRESENTATION and RESOLVED_LOCATION_UNKNOWN. These are backend outputs, not fixtures.
+
+Live geocoding through the adapter: "New Delhi" returned 2 disambiguated places, "Springfield" was capped at 10, and a nonsense query returned none.
+
+Advisories: an OSV querybatch for the 26 packages exported from `uv.lock` found none. This queried the public API with package names and versions only; no tool was installed.
+
+Final checks: 261 passed with the real MongoDB (255 + 6 skipped without it), Ruff clean, documentation checker PASS.
+
+Not done:
+- Telemetry and benchmarks (BE-011).
+- Region boxes (BE-006).
+- CI (REL-002).
+- Deployment (REL-001).
+- Multi-worker limits, which would need shared enforcement.
+- A daily provider-call budget setting, now documented as not implemented.
+
+## Dashboard (FE-002, FE-003, FE-005 partial) and a storage fix found end to end, 2026-10-14
+
+Frontend, written test-first against a mocked fetch with synthetic fixtures (tests/fixtures.ts, test-only):
+- **What it covers:** the contract 0.2 client, the request and search hooks, form validation, controls, results, the SVG charts and the error panel.
+- **Results:** 27 Vitest cases pass, and typecheck, lint and build pass.
+- **Mutation check:** 9 of 9 lifecycle mutants were caught. The late-success mutant initially survived because the mock rejected on abort; a race test (a success that arrives despite the abort) closed that gap.
+- **Accessibility audit:** axe-core 4.13.0 was added as an exact-pinned dev dependency (zero dependencies, published 2026-08-05; one lockfile entry, npm audit 0). It reports no violations in idle, validation, search, populated and error states, and a control test proves it detects an unlabeled input. Colour contrast is excluded in jsdom.
+
+Live browser run (Claude desktop pane, Chromium) through Vite's `/api` proxy to the factory-served API, with live NASA POWER and the local MongoDB:
+1. The first analysis returned a **500**. My safe-500 middleware had swallowed the traceback, so I added server-side logging (request ID, method and path; the client still gets only the envelope, test added).
+2. Reproduced in-process: one `bulk_write` of about 11,000 upserts exceeded the 5 s `timeoutMS`, and the raw driver error escaped the repositories.
+3. Fixes, test-first: writes now go in one-year batches, as database.md specifies (a 30-year save took 4.2 s as 30 batches of about 140 ms; read-back 0.16 s), and every repository call translates PyMongo errors into STORAGE_UNAVAILABLE.
+4. After the fix, search → choose "New Delhi, National Capital Territory of Delhi, India" → 1995–2024 → Analyze rendered 64 events, a 44.7 °C threshold, a decreasing descriptive trend, 3 charts and the provenance notes.
+
+Responsive and accessibility measurements (the pane was hidden, so rendering, timers and ResizeObserver were paused, but layout measurement still worked):
+- All nine sizes in the populated state: no overflow, nothing outside the viewport, controls ≥44 px.
+- Two defects were found and fixed. Charts clipped under stale widths, now fixed with viewBox scaling. Long unbroken words overflowed panels at 320 px, found with an in-page synthetic stress response, now fixed with `overflow-wrap`.
+- A 120-character label wraps cleanly.
+- The warm analysis request took 10 ms (23.6 kB).
+
+Not done: per-size screenshot review and click-to-render profiling, which need the pane visible (FE-005 remains IN_PROGRESS).
+
+Backend after the fix: 264 tests passed with the real MongoDB, Ruff clean.
