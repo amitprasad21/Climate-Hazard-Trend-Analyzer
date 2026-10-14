@@ -79,7 +79,9 @@ it("keeps keyboard focus order equal to the reading order", () => {
   expect(container.querySelector("[tabindex]")).toBeNull();
   const focusable = [...container.querySelectorAll<HTMLElement>("input, select, button")];
   expect(focusable.map((element) => element.getAttribute("name") ?? element.textContent)).toEqual([
-    "region_kind", "region_kind", "place_query", "Search", "label", "latitude", "longitude", "hazard", "start_year", "end_year",
+    "region_kind", "region_kind", "place_query", "Search",
+    "New Delhi", "Phoenix", "London", "Tokyo", "Athens",
+    "label", "latitude", "longitude", "hazard", "start_year", "end_year",
     "Last 10y", "Last 20y", "Last 30y", "Baseline (1991–2020)", "Full record",
     "Analyze trends",
   ]);
@@ -309,4 +311,20 @@ it("applies quick year preset chips to start and end year", () => {
   expect(endInput.value).toBe("2020");
   expect(baselineBtn.getAttribute("aria-pressed")).toBe("true");
 });
+
+it("applies quick city location chips to label and coordinates", () => {
+  render(<DashboardPage />);
+  const phoenixBtn = screen.getByRole("button", { name: "Phoenix" });
+  expect(phoenixBtn).toBeTruthy();
+  fireEvent.click(phoenixBtn);
+
+  const labelInput = screen.getByLabelText("Location name") as HTMLInputElement;
+  const latInput = screen.getByLabelText("Latitude") as HTMLInputElement;
+  const lonInput = screen.getByLabelText("Longitude") as HTMLInputElement;
+  expect(labelInput.value).toBe("Phoenix, Arizona, United States");
+  expect(latInput.value).toBe("33.4484");
+  expect(lonInput.value).toBe("-112.074");
+  expect(phoenixBtn.getAttribute("aria-pressed")).toBe("true");
+});
+
 

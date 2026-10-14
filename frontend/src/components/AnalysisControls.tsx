@@ -22,6 +22,14 @@ export function placeLabel(place: RegionResult): string {
   return [place.name, place.admin1, place.country].filter(Boolean).join(", ").slice(0, 120);
 }
 
+export const QUICK_CITIES = [
+  { short: "New Delhi", name: "New Delhi, National Capital Territory of Delhi, India", lat: 28.6139, lon: 77.209 },
+  { short: "Phoenix", name: "Phoenix, Arizona, United States", lat: 33.4484, lon: -112.074 },
+  { short: "London", name: "London, England, United Kingdom", lat: 51.5074, lon: -0.1278 },
+  { short: "Tokyo", name: "Tokyo, Japan", lat: 35.6762, lon: 139.6503 },
+  { short: "Athens", name: "Athens, Attica, Greece", lat: 37.9838, lon: 23.7275 },
+];
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
@@ -167,6 +175,37 @@ export function AnalysisControls(props: Props) {
                   <button type="button" className="secondary-action" onClick={runSearch}>
                     Search
                   </button>
+                </div>
+                <div className="preset-group" role="group" aria-label="Sample global cities">
+                  {QUICK_CITIES.map((city) => {
+                    const isSelected =
+                      draft.label === city.name &&
+                      draft.latitude === String(city.lat) &&
+                      draft.longitude === String(city.lon);
+                    return (
+                      <button
+                        key={city.name}
+                        type="button"
+                        className={`chip-btn ${isSelected ? "active" : ""}`}
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          if (onUpdate) {
+                            onUpdate({
+                              label: city.name,
+                              latitude: String(city.lat),
+                              longitude: String(city.lon),
+                            });
+                          } else {
+                            onChange("label", city.name);
+                            onChange("latitude", String(city.lat));
+                            onChange("longitude", String(city.lon));
+                          }
+                        }}
+                      >
+                        {city.short}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <SearchResults search={search} onSelect={onSelectPlace} />
