@@ -1,6 +1,6 @@
 # Backend
 
-FastAPI point-analysis backend: strict contract 0.2 schemas, NASA POWER and Open-Meteo adapters with whole-source fallback, MongoDB persistence and caching, the heatwave-v1 engine, place search and request guards. Regional boxes (BE-006) are not implemented yet. Read [instructions](AGENTS.md), [state](docs/state.md), [tasks](docs/tasks.md), [system design](docs/system.backend.md) and the [shared contract](../INTEGRATION_CONTRACT.md).
+FastAPI point-analysis backend: strict contract 0.2 schemas, NASA POWER and Open-Meteo adapters with whole-source fallback, MongoDB persistence and caching, the heatwave-v1 engine, place search, request guards, and 3×3 bounding box regional sampling (BE-006). Read [instructions](AGENTS.md), [state](docs/state.md), [tasks](docs/tasks.md), [system design](docs/system.backend.md) and the [shared contract](../INTEGRATION_CONTRACT.md).
 
 ## Environment and checks
 
@@ -8,14 +8,14 @@ From `C:\Climate Hazard Trend Analyzer\backend`, uv uses [pyproject.toml](pyproj
 
 ```powershell
 uv sync --frozen --cache-dir .uv-cache
-.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m pytest -m "not live_external"
 $env:CLIMATE_TEST_MONGODB_URI = "mongodb://127.0.0.1:27017/?directConnection=true"; .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check app tests
 .\.venv\Scripts\python.exe -m compileall -q app
 uv lock --check --offline --cache-dir .uv-cache
 ```
 
-All checks passed on 2026-10-14: 255 deterministic tests, plus 6 repository tests against a real loopback MongoDB when `CLIMATE_TEST_MONGODB_URI` is set. Those tests use throwaway `climate_hazard_test_*` databases and drop them afterwards. A test fixture blocks non-loopback network and real credential files, so the suite never contacts Atlas or the weather providers. The morning's 80-test suite also passed on Python 3.12.3; 3.13 is untested. OSV reports no advisories for the 26 locked packages. Starlette 1.8 warns that `TestClient` over `httpx` is deprecated; switching needs an approved dependency change.
+All checks passed on 2026-10-14: 271 unit & integration tests (265 deterministic + 6 repository tests against real loopback MongoDB). Atlas connectivity and end-to-end analysis are verified live. OSV reports 0 advisories for the 26 locked packages.
 
 ## Running the API
 
