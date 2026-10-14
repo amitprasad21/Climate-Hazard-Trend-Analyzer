@@ -2,6 +2,8 @@
 
 Responsive behavior is a feature requirement. Measured 2026-10-14 in the Claude desktop browser pane (Chromium) against the live API: idle and populated states at every size, plus synthetic stress data (long label, six-digit numbers, null years, unbroken long text) at 320, 768 and 1920. Two defects were found and fixed: a chart clipped under stale resize measurements, and long unbroken words overflowing result panels. Keyboard order and focus were checked at 320 x 568, and 320 px reflow covers 400% zoom. Screenshots per size were **not** reviewed because the pane was hidden; FE-005 stays open for that.
 
+Re-measured 2026-10-14 after FE-007 with the calendar, year panel and a selected year populated (New Delhi 1995–2024, local API, Claude pane Chromium, emulated sizes): 0 px page overflow at all nine sizes; the calendar and line-chart SVGs match their containers once the resize settles; at 320 px nothing in the results extends past the viewport and month labels become initials; the calendar and year panel share a row from 1024 px. Hidden-pane screenshots again proved unreliable (one 320 px capture showed a different scroll position), so visual review relied on one 1280 px capture plus measurements.
+
 | Viewport | Required emphasis | Actual status |
 |---|---|---|
 | 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error, synthetic stress tests pass) |

@@ -178,6 +178,15 @@ Potential charts:
 
 Differentiate series using brightness, line pattern, markers, labels, and chart structure—not color. Define anomaly units and baseline clearly.
 
+### 7.6.1 Heatwave calendar and linked years
+
+- One row per requested year; x is the day of year scaled to that year's length, so leap years end at the same edge. Month gridlines use `--color-chart-grid`; month names become initials when a month is narrower than 30 px.
+- Each backend event is a bar over its days (minimum 3 px). Events crossing 31 December are split across two rows with small continuation marks.
+- Bars are shaded by the backend's peak excess in three labelled display groups: under 1 °C `--color-chart-tertiary`, 1 to 2 °C `--color-chart-secondary`, 2 °C or more `--color-chart-primary`. The legend and description say this is a display grouping, not a statistic.
+- Boundary-censored events get a dashed white outline; excluded years get a dotted row line and are named in the legend, the chart description and the year list.
+- Hovering a row tints it with `--color-surface-hover` and draws the same year's dashed crosshair and tooltip in every line chart. The selected year gets a white row outline, a bold label and a solid line in every chart.
+- Selection works by pointer (calendar row or chart) and by keyboard through a native "Inspect a year" select; Escape clears it. Hover tooltips are never the only path: the year panel and events table carry the same facts.
+
 ### 7.7 Key insights
 
 Insights must be generated from actual analysis results and include relevant context. They should distinguish an estimated trend from a statistically significant trend and disclose material data-quality limitations.
@@ -212,7 +221,7 @@ Every applicable screen or control must consider the following states:
 
 1. **Idle:** controls are available and no current result is presented as if calculated.
 2. **Validating:** invalid input is explained close to the relevant field.
-3. **Loading:** show clear progress feedback; prevent duplicate submissions where appropriate.
+3. **Loading:** show clear progress feedback from real stages only (server waking, analysis requested, elapsed seconds) with static placeholders and no percentages; prevent duplicate submissions where appropriate.
 4. **Success:** render the returned metrics, charts, data provenance, and insights.
 5. **Partial data:** explicitly indicate missing coverage and affected analyses.
 6. **No events:** a valid analysis with zero qualifying events is successful; event count is zero and average duration is unavailable. Insufficient observations are a distinct typed error, never a zero-events conclusion.

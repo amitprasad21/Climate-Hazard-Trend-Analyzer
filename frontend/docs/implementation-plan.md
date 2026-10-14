@@ -1,6 +1,6 @@
 # Frontend implementation sequence
 
-[Tasks](tasks.md) owns completion. FE-001 to FE-005 are DONE; FE-006 (fast start) and FE-007 (heatwave calendar) are planned below. Before significant implementation, follow [the shared workflow](../../docs/ai-development-workflow.md): add a concrete slice plan here with package-version research, files/interfaces, edge cases, tests and approval status. Existing milestones specify order, not approval to build every feature. Apply UI review before extensive markup and review/simplification/final verification after the slice.
+[Tasks](tasks.md) owns completion. FE-001 to FE-007 are DONE; the slice below records how FE-006 (fast start) and FE-007 (heatwave calendar) were planned and built. Before significant implementation, follow [the shared workflow](../../docs/ai-development-workflow.md): add a concrete slice plan here with package-version research, files/interfaces, edge cases, tests and approval status. Existing milestones specify order, not approval to build every feature. Apply UI review before extensive markup and review/simplification/final verification after the slice.
 
 | Milestone | Tasks / prerequisites | Verification gate / risk |
 |---|---|---|
@@ -65,3 +65,5 @@ Tests (written first): day-of-year and cross-year splitting incl. leap years; sh
 Verification: Vitest, typecheck, lint, build size, axe; nine-size overflow measurement and a live run against the local or deployed API; mutation checks on the cache, stale-state and calendar rules. Rollback: revert the branch; no data or contract migration involved.
 
 Commit plan: plan and traceability → wake-up → browser reuse → loading view → calendar → linked year state → evidence and state documents.
+
+Result (2026-10-14): built as planned; evidence is in [tasks](tasks.md). Deviations: the calendar and linked year state landed in one commit because their tests share fixtures; the year panel sits beside the calendar from 1024 px (below it on narrower screens) so selecting a year never moves the calendar; excluded years are named in the legend, the chart description and the year list ("2004 (excluded)") instead of an in-row label, which would collide with 8 px rows.

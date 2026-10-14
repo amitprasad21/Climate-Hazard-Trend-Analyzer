@@ -269,7 +269,7 @@ Added operational benchmarking tool and operational runbook:
 ## Responsive and Accessibility Completion (FE-005), 2026-10-14
 
 Automated 9-viewport responsive test suite implemented in `frontend/tests/responsiveness.test.tsx`:
-- **Viewports tested**: All 9 canonical breakpoints (320px, 375px, 414px, 768px, 1024px, 1280px, 1440px, 1680px, 1920px) across idle, populated, and error states (27 test cases).
+- **Viewports tested**: All 9 canonical sizes (320x568, 360x800, 390x844, 430x932, 768x1024, 1024x768, 1280x800, 1440x900, 1920x1080) across idle, populated, and error states (27 test cases).
 - **Checks performed**: Zero horizontal/vertical unintended overflow, SVG chart viewBox scaling, panel word wrapping (`overflow-wrap: anywhere`), interactive control hit areas (≥44px), and keyboard focus outline visibility.
 - **Accessibility**: axe-core 4.13.0 automated accessibility audit confirmed 0 violations across all UI states.
 - **Status**: FE-005 is verified DONE.
@@ -290,4 +290,11 @@ Added CSV download for heatwave events in `frontend/src/components/ResultsView.t
 - **Implementation**: Pure client-side `Blob` and temporary object URL generation with automatic revocation; zero server dependencies.
 - **Tests**: Verified with mock URL creation and revocation assertion in `frontend/tests/DashboardPage.test.tsx`.
 
+## Fast start and heatwave calendar (FE-006, FE-007), 2026-10-14
 
+Branch `feature/fast-start-and-heatwave-calendar`, not yet merged or deployed. Frontend only; no backend or contract change.
+
+- **Checks**: `npm test` 86 passed, `npm run typecheck`, `npm run lint` and `npm run build` pass (84.02 kB gzip JS, 3.32 kB CSS; 78.5 kB JS before the slice). axe-core reports 0 violations while loading and with a year selected.
+- **Mutation checks**: 9 of 9 saved-result mutants and 16 of 16 calendar/linking mutants caught; each mutant was applied, the suites run, and the file restored.
+- **Browser** (Claude pane, Chromium, local API with local MongoDB, New Delhi 1995–2024): one completed health request per load; a repeated analysis sent no request and was marked saved; the calendar drew 30 rows and 64 bars for 64 backend events; real-pointer hover linked all three charts; selecting 2003 showed its values and 2 events and filtered the events table; 0 px page overflow at all nine sizes.
+- **Not verified**: a real Render cold start through the waking message (needs deployment), per-size screenshot review (hidden-pane captures were unreliable) and a physical touch device.

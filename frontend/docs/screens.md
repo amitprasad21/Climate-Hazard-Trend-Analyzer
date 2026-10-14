@@ -10,7 +10,9 @@ Surface: `/`, mode **Operate**. The user selects where/when and receives an unde
 | Analysis form | City/coordinates, Heatwave, start/end year | Explicit labels, native year inputs, semantic button, inline errors |
 | Result context | Response region/period/source | Shows the parameters actually analyzed; never current form with old results |
 | Four metrics | Backend event count/duration/trend/threshold | Readable values and units; em dash with explanatory text for null |
-| Frequency plot | Backend annual rows | Solid white annual counts, dashed gray rolling series with explicit labels, focus/table details |
+| Heatwave calendar | Backend events by year and day of year | One row per year, bars over event days shaded by labelled peak-excess groups, censored/excluded markers, hover details; selecting a row opens the year panel |
+| Year panel | Native "Inspect a year" list and the selected year's backend values | Values or exclusion reasons plus the events touching that year; filters the events table; Escape or "Show all years" clears it |
+| Frequency plot | Backend annual rows | Solid white annual counts, dashed gray rolling series with explicit labels, focus/table details; hovering or selecting a year is mirrored in every chart and the calendar |
 | Geographic context | Coordinates/sample points/source resolution | Grayscale context or unavailable state; no intensity shading without valid spatial data |
 | Secondary plots | Backend duration/anomaly | Gaps for nulls, readable years, data table alternative |
 | Insights/method | Evidence, coverage and warnings | Wrapping text, method disclosure, attribution links |
@@ -19,9 +21,9 @@ No-events is a populated success state; loading, errors and no data are not char
 
 ## Lifecycle presentation
 
-Idle: explain the required selection and heatwave rule; show no fabricated figures. Pending: announce “Analyzing historical weather”, disable duplicate Analyze, allow cancellation through edits; no fake percent. Success: show only the returned period/region. Partial: same layout with prominent coverage warning and omitted-year gaps. Error: short recovery message, retain inputs, focus/announce appropriately. Dirty parameters: hide old results and indicate that analysis needs to run again.
+Idle: explain the required selection and heatwave rule; show no fabricated figures. Pending: announce “Analyzing historical weather”, disable duplicate Analyze, allow cancellation through edits; list only real stages (server waking or ready, analysis requested with elapsed seconds), static placeholder outlines without numbers, and a slow-wait note after 45 s; no fake percent. A result saved in this browser appears at once and says so. Success: show only the returned period/region. Partial: same layout with prominent coverage warning and omitted-year gaps. Error: short recovery message, retain inputs, focus/announce appropriately. Dirty parameters: hide old results and indicate that analysis needs to run again.
 
-Desktop uses a compact header/form, metric row, primary 2:1 chart/geography row and balanced lower plots/insights. Tablet stacks any plot that becomes cramped. Mobile follows the exact reading order in one column with a full-width Analyze action; map/diagram height stays bounded. [Responsive evidence](responsiveness.md) is still pending.
+Desktop uses a compact header/form, metric row, primary 2:1 chart/geography row and balanced lower plots/insights. Tablet stacks any plot that becomes cramped. Mobile follows the exact reading order in one column with a full-width Analyze action; map/diagram height stays bounded. The calendar and year panel share a row from 1024 px and stack below it. [Responsive evidence](responsiveness.md) covers all nine sizes.
 
 All controls, charts, statuses and geographic context use grayscale. Errors/partial states use explicit headings, text and symbols; trend direction never acquires a good/bad color. Supporting text remains readable on opaque panels. No atmospheric asset was supplied; pure black is the specified fallback. The reference description is not a screenshot or dataset.
 

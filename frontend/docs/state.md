@@ -1,13 +1,14 @@
 # Frontend state
 
-Reviewed 2026-10-14. FE-001, FE-002 and FE-003 are DONE: the dashboard searches places, validates input, runs analyses against the real API with stale-response protection, and renders metrics, three charts, provenance, quality, insights and errors. FE-005 is IN_PROGRESS (screenshot review and interaction profiling pending); FE-004 (boxes) is TODO.
+Reviewed 2026-10-14. FE-001 to FE-007 are DONE: the dashboard searches places or takes a bounding box, validates input, wakes the API on page load, runs analyses against the real API with stale-response protection, reuses saved results inside their backend expiry, shows honest loading stages, and renders metrics, a heatwave calendar linked to three line charts, a year detail panel, provenance, quality, insights, events (with CSV export) and errors.
 
-Planned state ownership: page owns draft inputs; request hook owns immutable submitted parameters, active request token/controller, phase, result and safe error; presentation receives props. No global store.
+State ownership: the page owns draft inputs; `useServerStatus` owns the one wake-up check; `useAnalysis` owns immutable submitted parameters, the active request token/controller, phase, result, safe error and the per-tab saved-result cache; `ResultsView` owns the hovered and selected year for one result; presentation receives props. No global store.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
     Idle --> Loading: valid submit
+    Idle --> Success: saved result within its expiry (no request)
     Loading --> Success: matching complete result
     Loading --> Partial: matching partial result
     Loading --> Error: matching failure
@@ -18,12 +19,12 @@ stateDiagram-v2
     Error --> Idle: edit parameters
 ```
 
-No-events is Success with zero count. Insufficient data is a typed Error. Obsolete success/errors have no transition. Pending cleanup on unmount prevents setting stale state. Source cache metadata is server-derived; the browser does not manufacture freshness. Fresh cache hits are not stale results. The contract prohibits stale-result fallback, so the UI brief creates no stale-success transition. All visual states use [grayscale design](design.md); no actual reference image/local weather asset exists.
+No-events is Success with zero count. Insufficient data is a typed Error. Obsolete success/errors have no transition. Pending cleanup on unmount prevents setting stale state. Source cache metadata is server-derived; the browser does not manufacture freshness. A saved result is reused only while the backend's `cache.expires_at` is in the future, is relabelled with the current label and is announced as saved; failures are never saved. Fresh cache hits are not stale results. The contract prohibits stale-result fallback, so the UI brief creates no stale-success transition. All visual states use [grayscale design](design.md); no actual reference image/local weather asset exists.
+
+Server status is separate from the analysis phase: checking → waking (no answer after 1.5 s) → ready, or unreachable. It only changes messages; an analysis can still run when the wake-up check fails.
+
+Year views live inside Success and Partial. Hovering a calendar row or a chart sets a transient hovered year shared by every chart; clicking a row or chart, or choosing in "Inspect a year", sets the selected year, which opens the year panel and filters the events table. Escape, "Show all years" or clicking the selected row clears it. Editing any input returns to Idle, so a selection never outlives its result.
 
 All 13 frontend design concepts (9–21) are expanded in [system design](system.frontend.md); the [85-concept coverage](../../docs/system-design-coverage.md) maps tasks/tests. Client source types follow contract 0.2 (NASA POWER or Open-Meteo ERA5, nullable resolved point).
 
-The subsequent DOC-007 workflow update aligns planning, package research, UI/review/simplification and final evidence gates with [the shared workflow](../../docs/ai-development-workflow.md). No tool installed or frontend implementation performed. Shared DOC-008 is conditional, not a dependency of manual frontend work.
-
-Next: FE-001 following the [plan](implementation-plan.md). Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).
-
-In progress (2026-10-14, branch `feature/fast-start-and-heatwave-calendar`): FE-006 fast start (server wake-up status, in-browser result reuse within backend expiry, honest loading stages) and then FE-007 heatwave calendar with linked year views. See the [plan](implementation-plan.md).
+Next: the review-feedback follow-ups, a Leaflet map of the analysed point or box and a README of decisions and trade-offs, then deployment of this branch after approval. Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).

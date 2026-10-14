@@ -145,6 +145,8 @@ South-West (lat0, lon0) --- South-Center (lat0, lon1) --- South-East (lat0, lon2
 | **Bounding Box Area** | Constrained rectangular bounding box selection with coordinate validation. | [`frontend/src/form.ts`](frontend/src/form.ts) |
 | **Monochrome UI** | Accessible high-contrast black/white design system meeting WCAG 2.2 AA. | [`frontend/docs/design.md`](frontend/docs/design.md) |
 | **Scalable SVG Charts** | Hand-crafted SVG charts (Frequency, Duration, Anomaly) with data tables. | [`frontend/src/components/LineChart.tsx`](frontend/src/components/LineChart.tsx) |
+| **Heatwave Calendar** | Every backend event drawn by year and day of year; hover links all charts, and selecting a year opens its values and events. | [`frontend/src/components/HeatwaveCalendar.tsx`](frontend/src/components/HeatwaveCalendar.tsx) |
+| **Fast Start** | Wakes the sleeping free-tier API on page load, reuses saved results within their expiry and shows only real loading stages. | [`frontend/src/hooks/useServerStatus.ts`](frontend/src/hooks/useServerStatus.ts) |
 | **Heatwave CSV Export** | Client-side RFC 4180 CSV export of all detected heatwave events. | [`frontend/src/components/ResultsView.tsx`](frontend/src/components/ResultsView.tsx) |
 | **Dual Provider Fallback** | NASA POWER primary with automatic failover to Open-Meteo ERA5. | [`backend/app/selector.py`](backend/app/selector.py) |
 | **Dual MongoDB Caching** | Persistent daily weather storage + SHA-256 analysis result cache. | [`backend/app/repositories/`](backend/app/repositories/) |
@@ -226,7 +228,7 @@ python -m compileall app
 uv run pytest -m "not live_external"
 ```
 
-### Frontend Test & Build Suite (56 Tests)
+### Frontend Test & Build Suite (86 Tests)
 ```bash
 cd frontend
 npm run typecheck
@@ -256,8 +258,8 @@ python scripts/benchmark.py --url http://127.0.0.1:8000 --concurrency 5 --iterat
 |---|---|---|
 | **Cold Request Latency** (30-year span, live NASA fetch + Atlas persistence) | <90.0 s | **2.74 s** |
 | **Warm Cached Request Latency** (Atlas cache read) | <1.0 s | **57.5 ms** (Atlas) / **7.7 ms** (Local) |
-| **Frontend JavaScript Bundle Size** (production compressed) | <250 kB gzip | **78.54 kB gzip** |
-| **Frontend CSS Size** | <10 kB gzip | **2.39 kB gzip** |
+| **Frontend JavaScript Bundle Size** (production compressed) | <250 kB gzip | **84.02 kB gzip** |
+| **Frontend CSS Size** | <10 kB gzip | **3.32 kB gzip** |
 | **Automated Accessibility Violations** (`axe-core`) | 0 | **0 violations** |
 | **Responsive Viewports Tested** | 9 viewports | **All 9 pass without layout overflow** |
 

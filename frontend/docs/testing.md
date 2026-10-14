@@ -1,6 +1,6 @@
 # Frontend verification plan
 
-**Checks pass (2026-10-14):** `npm test` (27 Vitest/jsdom cases: tokens, page lifecycle and errors, search, charts, axe accessibility), `npm run typecheck`, `npm run lint`, `npm run build` (77.4 kB gzip JS). Interaction tests use a mocked fetch and synthetic fixtures (tests/fixtures.ts). The live browser run against the real API is recorded under FE-002/FE-003/FE-005 in [tasks](tasks.md). Current documentation checks do not count as frontend tests.
+**Checks pass (2026-10-14):** `npm test` (86 Vitest/jsdom cases: tokens, page lifecycle and errors, search, charts, heatwave calendar and linked years, server status, saved results, loading view, nine-size responsiveness, axe accessibility), `npm run typecheck`, `npm run lint`, `npm run build` (84.02 kB gzip JS, 3.32 kB CSS). Mutation checks: 9 of 9 saved-result mutants and 16 of 16 calendar/linking mutants caught. Interaction tests use a mocked fetch and synthetic fixtures (tests/fixtures.ts). The live browser run against the real API is recorded under FE-002/FE-003/FE-005 in [tasks](tasks.md). Current documentation checks do not count as frontend tests.
 
 | Case | Required evidence |
 |---|---|
@@ -29,7 +29,7 @@ Unit/interaction tests exercise components and the request hook with determinist
 
 Add regression cases for changed user behavior, stale-response races, security/validation, chart null handling and responsive overflow. Test user outcomes rather than component private state. A CSS change affecting charts requires narrow/wide visual evidence; a request-state change requires late success and late failure tests. Small prose changes need documentation verification only.
 
-FE-005 also records production compressed JS size and a reproducible cold/warm interaction profile (browser/version, device or CPU throttling, network/cache state and sample count). Initial <250 KiB target excludes optional map chunks; it is not measured yet. Check expensive chart rerenders before memoizing; annual data is at most 50 rows. REL-002 puts type/lint/unit/build/contract and browser checks into clean independent CI; no workflow exists today.
+FE-005 also records production compressed JS size and a reproducible cold/warm interaction profile (browser/version, device or CPU throttling, network/cache state and sample count). Initial <250 KiB target excludes optional map chunks; measured 84.02 kB gzip (268 kB raw) after FE-007. Check expensive chart rerenders before memoizing; annual data is at most 50 rows. REL-002 puts type/lint/unit/build/contract and browser checks into clean independent CI; no workflow exists today.
 
 Required evidence for DONE: actual commands pass, declared states and acceptance covered, failures fixed, screenshots reviewed where applicable, current docs/tasks updated, affected callers reviewed. Skipped browser prerequisites keep FE-005 open, even if static overflow checks pass.
 
