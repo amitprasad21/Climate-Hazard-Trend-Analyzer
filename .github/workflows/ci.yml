@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: Documentation & Contract Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run documentation and token contrast checker
+        run: |
+          python scripts/check_docs.py --self-test
+          python scripts/check_docs.py
+
+  backend:
+    name: Backend CI (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.14"]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Sync dependencies from lockfile
+        run: uv sync --frozen
+
+      - name: Lint with Ruff
+        run: uv run ruff check app tests
+
+      - name: Bytecode compilation check
+        run: uv run python -m compileall app
+
+      - name: Run deterministic test suite
+        run: uv run pytest
+
+  frontend:
+    name: Frontend CI (Node 24)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies from lockfile
+        run: npm ci --ignore-scripts
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run Vitest unit & a11y suite
+        run: npm test -- --run
+
+      - name: Build production bundle
+        run: npm run build

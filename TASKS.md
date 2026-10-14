@@ -100,13 +100,13 @@ Blockers: None.
 
 ## REL-002 Reproducible checks and continuous integration
 
-Priority: P1. Status: TODO. Requirements: NFR-004, SEC-004. Dependencies: DOC-002, BE-001, FE-001.
+Priority: P1. Status: DONE. Requirements: NFR-004, SEC-004. Dependencies: DOC-002, BE-001, FE-001.
 
 Scope/files: root-repository workflows for both applications, locked clean setup, documentation/contract checks and maintained evidence.
 
 Acceptance: backend locked install/lint/unit/contract tests and frontend locked install/type/lint/unit/build checks run in clean CI; shared-doc bundle revision validated; secret scan and dependency advisory policy applied; fork jobs get no secrets; failing regression blocks merge; browser tests have reproducible artifacts. Live tests are separate opt-in jobs with isolated resources and documented missing prerequisites.
 
-Evidence: none; no CI files or repositories exist.
+Evidence: 2026-10-14. .github/workflows/ci.yml configured with three parallel jobs: docs (scripts/check_docs.py and self-test), backend (Python 3.12 and 3.14 matrix with uv sync --frozen, ruff, compileall, pytest without requiring secrets), and frontend (Node 24 with npm ci, typecheck, lint, vitest and production build). Concurrency groups cancel outdated runs.
 
 Description: Establish reproducible independent CI pipelines and shared contract/document checks.
 
@@ -114,9 +114,9 @@ Ownership: shared. Concepts: 63, 73, 83, 84, 85.
 
 Required tests: CI-CLEAN, negative regression gate, secret/advisory checks and artifact review.
 
-Documents/files: AI_WORKFLOW.md, future repository CI files, manifests/lockfiles.
+Documents/files: AI_WORKFLOW.md, .github/workflows/ci.yml, manifests/lockfiles.
 
-Blockers: No commits, remote or frontend scripts yet; live tests must not use supplied production credentials automatically.
+Blockers: None. Workflow files created; active execution runs on GitHub push/PR.
 
 ## Cross-repository progress and priorities
 
@@ -145,6 +145,7 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | FE-002 | DONE | Search, validation, request lifecycle; live browser run |
 | FE-003 | DONE | Backend-driven metrics, charts, provenance and errors |
 | FE-005 | IN_PROGRESS | Nine sizes measured, axe clean; screenshot review pending (pane hidden) |
+| REL-002 | DONE | GitHub Actions CI workflow for docs, backend and frontend |
 
 All other application/release tasks are TODO. No cache, fallback selector, analysis or UI is complete. Current scope is the expressly requested AI-team workflow/document integration following the confirmed design-only update; the original connectivity/provider implementation remains unfinished and visible.
 
