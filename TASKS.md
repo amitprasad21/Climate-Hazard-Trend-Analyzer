@@ -140,7 +140,7 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | BE-007 | DONE | Persisted point analysis endpoint; live E2E cold and cached |
 | BE-008 | DONE | CORS, body/media limits, rate/capacity limits, safe 500s |
 | BE-010 | DONE | Whole-source selector with ordered fallback |
-| BE-009 | BLOCKED | 42 deterministic tests pass; live ping awaits Atlas password rotation |
+| BE-009 | DONE | Live Atlas ping, readiness and E2E persistence verified |
 | FE-001 | DONE | Vite/React/TS monochrome shell; 7 tests, build, nine-size overflow and keyboard smoke |
 | FE-002 | DONE | Search, validation, request lifecycle; live browser run |
 | FE-003 | DONE | Backend-driven metrics, charts, provenance and errors |
@@ -150,7 +150,7 @@ All other application/release tasks are TODO. No cache, fallback selector, analy
 
 Next ordered work after this phase:
 
-1. BE-001 is DONE. BE-009 deterministic lifecycle is verified; its live ping waits for the rotated Atlas password. The point-analysis backend (BE-002/003/004/005/007/008/010) is DONE and verified against live NASA POWER and a local MongoDB. Next: FE-002 controls and request lifecycle, FE-003 results, FE-005 acceptance, then BE-006/FE-004 boxes.
+1. BE-001 and BE-009 are DONE, with Atlas live ping, readiness and E2E analysis verified. The point-analysis backend (BE-002/003/004/005/007/008/010) is DONE. Next: FE-005 responsive/screenshot acceptance, REL-002 CI, REL-001 deployment, then BE-006/FE-004 boxes and BE-011 observability.
 2. FE-001: establish the UI shell independently from backend science. BE-003 implements normalized no-key adapters; BE-010 adds whole-source fallback; BE-004 provides lookup.
 3. Resolve DOC-004 before exposing NASA analysis; complete BE-002 pure science and BE-005 persistence in their own authorized slices. BE-007 integrates the full point path, then BE-008 hardens it.
 4. FE-002 final integration depends on lookup and the agreed contract; fixture-based controls/state work need not wait. FE-003 consumes real analysis, FE-005 verifies all viewports/accessibility/performance.

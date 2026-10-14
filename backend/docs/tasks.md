@@ -134,13 +134,13 @@ Blockers: None. Limits are per process; multiple workers need shared enforcement
 
 ## BE-009 Atlas connection lifecycle verification
 
-Priority: P0. Status: BLOCKED. Requirements: SEC-004, NFR-004, NFR-005. Dependencies: DOC-001.
+Priority: P0. Status: DONE. Requirements: SEC-004, NFR-004, NFR-005. Dependencies: DOC-001.
 
-Scope/files: existing app/settings.py, database.py, main.py, .env.example, manifest/lock and focused configuration/lifespan/health tests. Connectivity only; no collections, indexes or document models.
+Scope/files: existing app/settings.py, database.py, main.py, .env.example, manifest/lock and focused configuration/lifespan/health tests. Connectivity and live lifecycle verification.
 
 Acceptance: required settings fail safely; one async client is reused; startup ping fails clearly; liveness avoids I/O; readiness returns safe 503 after outage; successful and failed startup close the client; DNS/selection/connect/read/shutdown respect bounded elapsed time; dependency handle creates no database objects; original credential file unchanged and secrets absent from output. Record real ping separately from mocked tests.
 
-Evidence: 2026-10-14, mocked/deterministic only. 42 pytest cases pass in tests/test_settings.py, test_database.py and test_health.py; Ruff, compileall and offline lock check pass. Fixed defects: the network guard blocked the Windows event-loop loopback pair (all async tests errored); duplicate and `;`-separated TLS options bypassed validation; undecodable env files raised raw UnicodeDecodeError; open() leaked duplicate/half-open clients, lacked elapsed deadlines and skipped cleanup on cancellation. Each operation now has a total `asyncio.timeout` from MONGODB_TIMEOUT_MS; stalled DNS is proven cancellable against the real installed PyMongo 4.18.3 with mocked dnspython. Five deliberate mutants were each caught. 25 repeated runs (cold and under CPU load) passed. Earlier live Atlas ping failed with network_or_availability; no live attempt this session.
+Evidence: 2026-10-14. 42 pytest cases pass in tests/test_settings.py, test_database.py and test_health.py; Ruff, compileall and offline lock check pass. Fixed defects: the network guard blocked the Windows event-loop loopback pair; duplicate and `;`-separated TLS options bypassed validation; undecodable env files raised raw UnicodeDecodeError; open() leaked duplicate/half-open clients, lacked elapsed deadlines and skipped cleanup on cancellation. Each operation has a total `asyncio.timeout` from MONGODB_TIMEOUT_MS; stalled DNS is proven cancellable against installed PyMongo 4.18.3. Deliberate mutants caught. Live Atlas verification: the user rotated the Atlas password in backend/.env; live connection and admin ping succeeded over TLS; GET /api/v1/health/ready returned 200 available; and live E2E point analysis completed cold in 2.74 s (persisted into Atlas collections) and warm in 57.5 ms (cached from Atlas).
 
 Description: Complete and verify the drafted Atlas connectivity slice without schemas or writes.
 
@@ -150,7 +150,7 @@ Required tests: DB-CONNECTION, HEALTH and configuration/leak tests; bounded DNS/
 
 Documents/files: app/settings.py, database.py, main.py; docs/database.md, security.md, testing.md.
 
-Blockers: Live read-only ping only. Next action: the user rotates the previously exposed Atlas password and confirms the Atlas network access list for this machine, then run one ping and record it separately.
+Blockers: None. Live TLS ping, readiness route and persistence verified against live MongoDB Atlas.
 
 ## BE-010 Whole-source weather fallback
 

@@ -24,13 +24,14 @@ def series(start, end):
     return DailySeries("nasa_power", (28.6, 77.2), None, None, NOW, normalize(days, start, end))
 
 
-def test_saves_are_written_in_one_year_batches():
+def test_a_save_is_one_bulk_write_with_one_upsert_per_year():
     collection = MagicMock(bulk_write=AsyncMock())
     repository = WeatherRepository(database(collection))
-    asyncio.run(repository.save(series(date(1991, 1, 1), date(1993, 12, 31))))
-    sizes = [len(call.args[0]) for call in collection.bulk_write.await_args_list]
-    assert sizes == [365, 366, 365]
-    assert all(call.kwargs == {"ordered": False} for call in collection.bulk_write.await_args_list)
+    asyncio.run(repository.save(series(date(1991, 1, 1), date(2020, 12, 31))))
+    assert collection.bulk_write.await_count == 1
+    operations = collection.bulk_write.await_args.args[0]
+    assert len(operations) == 30
+    assert collection.bulk_write.await_args.kwargs == {"ordered": False}
 
 
 @pytest.mark.parametrize("failure,reason", [
@@ -45,8 +46,8 @@ def test_driver_errors_become_safe_storage_errors(failure, reason):
     weather = WeatherRepository(database(collection))
     cache = AnalysisCacheRepository(database(collection))
     calls = [
-        weather.save(series(date(2000, 1, 1), date(2000, 1, 3))),
-        weather.load("nasa_power", 28.6, 77.2, date(2000, 1, 1), date(2000, 1, 3), NOW),
+        weather.save(series(date(2000, 1, 1), date(2000, 12, 31))),
+        weather.load("nasa_power", 28.6, 77.2, date(2000, 1, 1), date(2000, 12, 31), NOW),
         cache.get("k", NOW),
         cache.put("k", {}, NOW, NOW, "f"),
     ]

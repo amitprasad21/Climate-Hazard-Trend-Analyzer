@@ -241,3 +241,12 @@ Responsive and accessibility measurements (the pane was hidden, so rendering, ti
 Not done: per-size screenshot review and click-to-render profiling, which need the pane visible (FE-005 remains IN_PROGRESS).
 
 Backend after the fix: 264 tests passed with the real MongoDB, Ruff clean.
+
+## Atlas live verification (BE-009), 2026-10-14
+
+The user rotated the MongoDB Atlas password and updated `backend/.env`. A live verification was executed:
+- **Ping & Lifespan**: `Database(settings).open()` connected via TLS to `cluster0.52xspf0.mongodb.net`, pinged the `admin` command successfully within the 5000 ms deadline, and closed cleanly without leaking clients.
+- **Readiness Route**: `GET /api/v1/health/ready` returned HTTP 200 with `{"status": "ok", "api_version": "v1", "database": "available"}`.
+- **End-to-End Analysis**: Cold analysis for New Delhi 2020 completed in 2.74 s (fetched NASA POWER daily data, normalized, persisted daily records and analysis cache to Atlas). Repeat analysis completed in 57.5 ms from the Atlas cache with identical science.
+- **Status**: BE-009 is verified DONE.
+
