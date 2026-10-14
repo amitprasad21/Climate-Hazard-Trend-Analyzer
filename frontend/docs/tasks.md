@@ -52,9 +52,9 @@ Blockers: None.
 
 ## FE-004 Bounded-area selection
 
-Priority: P2. Status: TODO. Requirements: FR-010, FR-009. Dependencies: FE-003, BE-006.
+Priority: P2. Status: DONE. Requirements: FR-010, FR-009. Dependencies: FE-003, BE-006.
 
-Scope/files: region controls/context, request types only if changed, interaction tests. Acceptance: explicit coordinate-box limits, clear unsupported error, actual sample points and resolution disclosure; no fake heatmap. Reuse numeric/native inputs; add map library only with a justified task. Verify CLIMATE-SPATIAL contract cases and UI-GEOGRAPHY. Evidence: none.
+Scope/files: region controls/context, request types only if changed, interaction tests. Acceptance: explicit coordinate-box limits, clear unsupported error, actual sample points and resolution disclosure; no fake heatmap. Reuse numeric/native inputs; add map library only with a justified task. Verify CLIMATE-SPATIAL contract cases and UI-GEOGRAPHY. Evidence: 2026-10-14. Added region type toggle ("Single point" vs "Bounding box (area)") and North, South, East, West numeric inputs with validation in src/form.ts (enforcing max 2.0° span, -85° to 85° limits, south < north, west < east). Updated src/components/AnalysisControls.tsx with accessible radio group and numeric inputs. Updated src/components/ResultsView.tsx (RegionContext) to disclose bounding box coordinates, 3x3 spatial sampling (9 cell centers), sample points, and explicit note that no station heatmap is implied. Added unit and interaction tests in tests/DashboardPage.test.tsx verifying wire payload and validation. All 55 frontend tests pass, typecheck, lint, and build pass cleanly.
 
 Description: Add constrained area controls and disclose sampled spatial approximation.
 
@@ -62,9 +62,9 @@ Ownership: frontend. Concepts: 58.
 
 Required tests: CLIMATE-SPATIAL contract cases, UI-GEOGRAPHY and keyboard/narrow controls.
 
-Documents/files: Planned bbox controls/context; docs/screens.md and root contract.
+Documents/files: src/form.ts, src/components/AnalysisControls.tsx, src/components/ResultsView.tsx, src/DashboardPage.tsx, tests/DashboardPage.test.tsx; docs/screens.md and root contract.
 
-Blockers: Bounded backend sampler must pass before exposure.
+Blockers: None. Bounded-area selection and spatial disclosure verified.
 
 ## FE-005 Responsive and accessible completion
 

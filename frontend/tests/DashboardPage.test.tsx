@@ -79,7 +79,7 @@ it("keeps keyboard focus order equal to the reading order", () => {
   expect(container.querySelector("[tabindex]")).toBeNull();
   const focusable = [...container.querySelectorAll<HTMLElement>("input, select, button")];
   expect(focusable.map((element) => element.getAttribute("name") ?? element.textContent)).toEqual([
-    "place_query", "Search", "label", "latitude", "longitude", "hazard", "start_year", "end_year",
+    "region_kind", "region_kind", "place_query", "Search", "label", "latitude", "longitude", "hazard", "start_year", "end_year",
     "Analyze trends",
   ]);
 });
@@ -244,4 +244,35 @@ it("discards a success that still arrives after an abort was requested", async (
   });
   expect(screen.queryByText("Synthetic Place")).toBeNull();
   expect(screen.getByText("Settings changed")).toBeTruthy();
+});
+
+
+it("supports bounding box area selection and submits valid bbox request", () => {
+  render(<DashboardPage />);
+  fireEvent.click(screen.getByLabelText("Bounding box (area)"));
+  expect(screen.getByLabelText("South latitude")).toBeTruthy();
+  expect(screen.getByLabelText("North latitude")).toBeTruthy();
+
+  fill("Region name", "Delhi NCR Area");
+  fill("South latitude", "28.0");
+  fill("North latitude", "27.0");
+  fill("West longitude", "77.0");
+  fill("East longitude", "78.0");
+  fill("Start year", "2000");
+  fill("End year", "2010");
+  submit();
+  expect(screen.getByText("North latitude must be greater than south latitude.")).toBeTruthy();
+
+  fill("North latitude", "29.0");
+  submit();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+  expect(sent.region).toEqual({
+    kind: "bbox",
+    label: "Delhi NCR Area",
+    south: 28,
+    west: 77,
+    north: 29,
+    east: 78,
+  });
 });

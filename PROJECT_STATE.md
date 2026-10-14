@@ -24,8 +24,6 @@ DOC-002, BE-001 and BE-009 are DONE. DOC-004 is DONE: the user approved analysis
 
 ## Gaps and next work
 
-No bbox sampling exists. All nine responsive viewports and automated accessibility checks are verified.
-
-Backend BE-001/002/003/004/005/007/008/009/010/011, FE-001/002/003/005 and REL-002 are DONE. Next: REL-001 deployment, then BE-006/FE-004 region bounding box sampling. Significant implementation follows the concrete planning/approval gate; existing approvals remain valid for unchanged scope.
+Backend BE-001/002/003/004/005/006/007/008/009/010/011, FE-001/002/003/004/005 and REL-002 are DONE. Bounded regional sampling (3x3 grid with cosine-latitude weighting) is implemented in backend and frontend. Next: REL-001 deployment and release.
 
 Deployment entitlement, host/accounts, repository remotes/shared-document ownership are unresolved. Deferred queues, breakers, replicas and formal significance need a justified future task/evidence, not installation now.

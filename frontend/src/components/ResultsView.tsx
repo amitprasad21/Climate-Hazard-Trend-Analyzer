@@ -108,7 +108,36 @@ function Charts({ result }: { result: AnalysisResponse }) {
 }
 
 function RegionContext({ result }: { result: AnalysisResponse }) {
-  const { source } = result;
+  const { source, region } = result;
+
+  if (region.kind === "bbox") {
+    return (
+      <section className="subpanel" aria-labelledby="region-heading">
+        <h3 id="region-heading">Region and data source</h3>
+        <dl className="facts">
+          <dt>Bounding box</dt>
+          <dd>
+            {formatCoordinate(region.south, "lat")} to {formatCoordinate(region.north, "lat")},{" "}
+            {formatCoordinate(region.west, "lon")} to {formatCoordinate(region.east, "lon")}
+          </dd>
+          <dt>Spatial aggregation</dt>
+          <dd>3×3 grid (9 cell centers), cosine-latitude weighted mean</dd>
+          <dt>Sample points</dt>
+          <dd>{source.sample_points.length} points sampled across regional cells</dd>
+          <dt>Source</dt>
+          <dd>
+            {PROVIDER_NAMES[source.provider]} · {source.model} reanalysis, {source.grid_degrees.latitude}° ×{" "}
+            {source.grid_degrees.longitude}° grid
+          </dd>
+        </dl>
+        <p className="muted">
+          The regional series is a 3×3 cosine-weighted mean of daily maxima. No station or grid-cell heatmap is
+          implied.
+        </p>
+      </section>
+    );
+  }
+
   const point = source.sample_points[0];
   return (
     <section className="subpanel" aria-labelledby="region-heading">

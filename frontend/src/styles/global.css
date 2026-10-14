@@ -286,6 +286,17 @@ select:hover {
   accent-color: var(--color-control-primary);
 }
 
+.choice-row {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.field-label {
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
 .choice-detail,
 .muted,
 .request-id {

@@ -115,29 +115,74 @@ export function AnalysisControls(props: Props) {
         <fieldset>
           <legend>Location</legend>
           <div className="field">
-            <label htmlFor="place_query">Search for a place</label>
-            <div className="search-row">
-              <input
-                id="place_query"
-                name="place_query"
-                type="search"
-                value={query}
-                maxLength={100}
-                autoComplete="off"
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={handleSearchKey}
-              />
-              <button type="button" className="secondary-action" onClick={runSearch}>
-                Search
-              </button>
+            <span id="region-kind-label" className="field-label">Region type</span>
+            <div className="choice-row" role="radiogroup" aria-labelledby="region-kind-label">
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="region_kind"
+                  value="point"
+                  checked={draft.regionKind === "point"}
+                  onChange={() => onChange("regionKind", "point")}
+                />
+                <span>Single point</span>
+              </label>
+              <label className="choice">
+                <input
+                  type="radio"
+                  name="region_kind"
+                  value="bbox"
+                  checked={draft.regionKind === "bbox"}
+                  onChange={() => onChange("regionKind", "bbox")}
+                />
+                <span>Bounding box (area)</span>
+              </label>
             </div>
           </div>
-          <SearchResults search={search} onSelect={onSelectPlace} />
-          {text("label", "label", "Location name", { type: "text", maxLength: 120, autoComplete: "off" })}
-          <div className="field-row">
-            {text("latitude", "latitude", "Latitude", { type: "number", inputMode: "decimal", min: -90, max: 90, step: "any" }, "−90 to 90")}
-            {text("longitude", "longitude", "Longitude", { type: "number", inputMode: "decimal", min: -180, max: 180, step: "any" }, "−180 to 180")}
-          </div>
+
+          {draft.regionKind === "point" ? (
+            <>
+              <div className="field">
+                <label htmlFor="place_query">Search for a place</label>
+                <div className="search-row">
+                  <input
+                    id="place_query"
+                    name="place_query"
+                    type="search"
+                    value={query}
+                    maxLength={100}
+                    autoComplete="off"
+                    onChange={(event) => setQuery(event.target.value)}
+                    onKeyDown={handleSearchKey}
+                  />
+                  <button type="button" className="secondary-action" onClick={runSearch}>
+                    Search
+                  </button>
+                </div>
+              </div>
+              <SearchResults search={search} onSelect={onSelectPlace} />
+              {text("label", "label", "Location name", { type: "text", maxLength: 120, autoComplete: "off" })}
+              <div className="field-row">
+                {text("latitude", "latitude", "Latitude", { type: "number", inputMode: "decimal", min: -90, max: 90, step: "any" }, "−90 to 90")}
+                {text("longitude", "longitude", "Longitude", { type: "number", inputMode: "decimal", min: -180, max: 180, step: "any" }, "−180 to 180")}
+              </div>
+            </>
+          ) : (
+            <>
+              {text("label", "label", "Region name", { type: "text", maxLength: 120, autoComplete: "off" })}
+              <div className="field-row">
+                {text("south", "south", "South latitude", { type: "number", inputMode: "decimal", min: -85, max: 85, step: "any" }, "−85 to 85")}
+                {text("north", "north", "North latitude", { type: "number", inputMode: "decimal", min: -85, max: 85, step: "any" }, "−85 to 85, span ≤ 2.0°")}
+              </div>
+              <div className="field-row">
+                {text("west", "west", "West longitude", { type: "number", inputMode: "decimal", min: -180, max: 180, step: "any" }, "−180 to 180")}
+                {text("east", "east", "East longitude", { type: "number", inputMode: "decimal", min: -180, max: 180, step: "any" }, "−180 to 180, span ≤ 2.0°")}
+              </div>
+              <span id="bbox-hint" className="hint">
+                Sampled using 9 cell centers (3×3 grid) with cosine-latitude weighting. Maximum 2.0° span.
+              </span>
+            </>
+          )}
         </fieldset>
 
         <fieldset>

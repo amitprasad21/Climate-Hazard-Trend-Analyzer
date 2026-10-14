@@ -40,9 +40,14 @@ export function DashboardPage() {
   const search = useRegionSearch();
   const latestYear = latestCompleteYear(new Date());
   const fieldRefs = {
+    regionKind: useRef<HTMLInputElement>(null),
     label: useRef<HTMLInputElement>(null),
     latitude: useRef<HTMLInputElement>(null),
     longitude: useRef<HTMLInputElement>(null),
+    south: useRef<HTMLInputElement>(null),
+    west: useRef<HTMLInputElement>(null),
+    north: useRef<HTMLInputElement>(null),
+    east: useRef<HTMLInputElement>(null),
     startYear: useRef<HTMLInputElement>(null),
     endYear: useRef<HTMLInputElement>(null),
   };
