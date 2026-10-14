@@ -794,3 +794,62 @@ input[aria-invalid="true"] {
 .server-status:empty {
   display: none;
 }
+
+.loading-view {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.loading-stages {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-text-supporting);
+  overflow-wrap: anywhere;
+}
+
+.loading-stages [aria-current="step"] {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.elapsed {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.placeholder-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+}
+
+.placeholder-metrics {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.placeholder-metric,
+.placeholder-chart {
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-2);
+}
+
+.placeholder-metric {
+  min-height: 7rem;
+}
+
+.placeholder-chart {
+  min-height: 14rem;
+}
+
+.placeholder-chart-wide {
+  grid-column: 1 / -1;
+  min-height: 18rem;
+}

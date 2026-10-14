@@ -75,3 +75,12 @@ it("detects a real violation, so the passing audits are meaningful", async () =>
   render(<input type="text" />);
   expect((await violations()).some((v) => v.startsWith("label"))).toBe(true);
 });
+
+it("has no detectable violations while an analysis is loading", async () => {
+  vi.mocked(fetch).mockReturnValueOnce(new Promise<Response>(() => undefined));
+  render(<DashboardPage />);
+  fillValid();
+  fireEvent.submit(screen.getByRole("button", { name: "Analyze trends" }));
+  expect(document.querySelector(".loading-view")).toBeTruthy();
+  expect(await violations()).toEqual([]);
+});

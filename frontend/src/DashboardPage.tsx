@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { RegionResult } from "./api/types";
 import { AnalysisControls, placeLabel } from "./components/AnalysisControls";
 import { ErrorPanel } from "./components/ErrorPanel";
+import { LoadingView } from "./components/LoadingView";
 import { ResultsView } from "./components/ResultsView";
 import {
   EMPTY_DRAFT,
@@ -140,9 +141,7 @@ export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {
             <ResultsView result={state.result} savedInBrowser={state.savedInBrowser} />
           )}
           {state.phase === "error" && <ErrorPanel error={state.error} onRetry={retry} />}
-          {state.phase === "loading" && (
-            <p className="empty-state">Fetching and analysing daily maxima. Results appear here when ready.</p>
-          )}
+          {state.phase === "loading" && <LoadingView request={state.request} serverStatus={server.status} />}
           {state.phase === "idle" && (
             <div className="empty-state">
               <p className="empty-title">{dirty ? "Settings changed" : "No analysis yet"}</p>
