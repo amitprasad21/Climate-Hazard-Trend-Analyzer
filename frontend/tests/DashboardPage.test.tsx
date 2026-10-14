@@ -80,6 +80,7 @@ it("keeps keyboard focus order equal to the reading order", () => {
   const focusable = [...container.querySelectorAll<HTMLElement>("input, select, button")];
   expect(focusable.map((element) => element.getAttribute("name") ?? element.textContent)).toEqual([
     "region_kind", "region_kind", "place_query", "Search", "label", "latitude", "longitude", "hazard", "start_year", "end_year",
+    "Last 10y", "Last 20y", "Last 30y", "Baseline (1991–2020)", "Full record",
     "Analyze trends",
   ]);
 });
@@ -295,3 +296,17 @@ it("exports heatwave events to CSV", async () => {
   expect(createObjectURL).toHaveBeenCalledTimes(1);
   expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
 });
+
+it("applies quick year preset chips to start and end year", () => {
+  render(<DashboardPage />);
+  const baselineBtn = screen.getByRole("button", { name: "Baseline (1991–2020)" });
+  expect(baselineBtn).toBeTruthy();
+  fireEvent.click(baselineBtn);
+
+  const startInput = screen.getByLabelText("Start year") as HTMLInputElement;
+  const endInput = screen.getByLabelText("End year") as HTMLInputElement;
+  expect(startInput.value).toBe("1991");
+  expect(endInput.value).toBe("2020");
+  expect(baselineBtn.getAttribute("aria-pressed")).toBe("true");
+});
+

@@ -117,6 +117,7 @@ export function DashboardPage() {
             search={search.state}
             fieldRefs={fieldRefs}
             onChange={(field, value) => update({ [field]: value })}
+            onUpdate={update}
             onSearch={(query) => void search.run(query)}
             onSelectPlace={selectPlace}
             onSubmit={submit}

@@ -11,6 +11,7 @@ type Props = {
   search: SearchState;
   fieldRefs: Record<DraftField, RefObject<HTMLInputElement | null>>;
   onChange: (field: DraftField, value: string) => void;
+  onUpdate?: (changes: Partial<Draft>) => void;
   onSearch: (query: string) => void;
   onSelectPlace: (place: RegionResult) => void;
   onSubmit: () => void;
@@ -68,8 +69,16 @@ function SearchResults({ search, onSelect }: { search: SearchState; onSelect: (p
 }
 
 export function AnalysisControls(props: Props) {
-  const { draft, errors, latestYear, pending, search, fieldRefs, onChange, onSearch, onSelectPlace } = props;
+  const { draft, errors, latestYear, pending, search, fieldRefs, onChange, onUpdate, onSearch, onSelectPlace } = props;
   const [query, setQuery] = useState("");
+
+  const yearPresets = [
+    { label: "Last 10y", start: Math.max(EARLIEST_YEAR, latestYear - 9), end: latestYear },
+    { label: "Last 20y", start: Math.max(EARLIEST_YEAR, latestYear - 19), end: latestYear },
+    { label: "Last 30y", start: Math.max(EARLIEST_YEAR, latestYear - 29), end: latestYear },
+    { label: "Baseline (1991–2020)", start: 1991, end: 2020 },
+    { label: "Full record", start: Math.max(EARLIEST_YEAR, latestYear - MAX_YEARS + 1), end: latestYear },
+  ];
 
   function runSearch() {
     if (query.trim().length >= 2) onSearch(query.trim());
@@ -196,6 +205,29 @@ export function AnalysisControls(props: Props) {
           <div className="field-row">
             {text("startYear", "start_year", "Start year", { type: "number", inputMode: "numeric", min: EARLIEST_YEAR, max: latestYear, step: 1 })}
             {text("endYear", "end_year", "End year", { type: "number", inputMode: "numeric", min: EARLIEST_YEAR, max: latestYear, step: 1 })}
+          </div>
+          <div className="preset-group" role="group" aria-label="Quick year presets">
+            {yearPresets.map((preset) => {
+              const isActive = draft.startYear === String(preset.start) && draft.endYear === String(preset.end);
+              return (
+                <button
+                  key={preset.label}
+                  type="button"
+                  className={`chip-btn ${isActive ? "active" : ""}`}
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    if (onUpdate) {
+                      onUpdate({ startYear: String(preset.start), endYear: String(preset.end) });
+                    } else {
+                      onChange("startYear", String(preset.start));
+                      onChange("endYear", String(preset.end));
+                    }
+                  }}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
           </div>
           <span id="period-hint" className="hint">
             Full calendar years from {EARLIEST_YEAR} to {latestYear}, up to {MAX_YEARS} years.
