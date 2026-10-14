@@ -14,6 +14,7 @@ Last reviewed: 2026-10-14 (Asia/Calcutta). **The point-analysis and bounding box
 - Continuous integration is configured in `.github/workflows/ci.yml` running docs, backend (Python 3.12/3.14), and frontend (Node 24) checks on GitHub pushes/PRs.
 - Operational telemetry and benchmarks are implemented via `scripts/benchmark.py` and documented in `backend/docs/runbook.md`.
 - 9-viewport automated responsive test suite (`frontend/tests/responsiveness.test.tsx`) verifies all canonical breakpoints (320px to 1920px) without page overflow; axe-core 4.13.0 automated accessibility audit confirmed 0 violations across all UI states.
+- Enhanced UX suite verified and committed: quick year presets (`Last 10y`, `Last 20y`, `Last 30y`, `Baseline 1991–2020`, `Full record`), rapid city location chips, high-contrast trend direction badges, subtle monochrome area fill gradients, and interactive SVG crosshair line with floating tooltip cards.
 - Bounding box regional sampling (`BE-006` and `FE-004`) implements 3x3 cell-center grid sampling with cosine weighting, cell deduplication, and spatial disclosure.
 - Client-side RFC 4180 CSV export for heatwave events is implemented in `frontend/src/components/ResultsView.tsx` with zero server overhead.
 
