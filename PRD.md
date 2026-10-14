@@ -93,9 +93,11 @@ Deployment recommendation: static frontend host plus one FastAPI instance and ma
 
 After core acceptance: geographic map selection, CSV export, then optional PDF export or suitable significance analysis. Do not delay the core for these.
 
-- [ ] Public frontend/backend repository links and setup instructions.
-- [ ] Deployed app URL and a successful live analysis.
-- [ ] Data source attribution, methodology, assumptions, limitations and future improvements.
-- [ ] Accurate AI-tool disclosure.
+- [x] CSV export of heatwave events (implemented client-side in frontend/src/components/ResultsView.tsx).
+- [ ] Public frontend/backend repository links and setup instructions (REL-001 release gate).
+- [ ] Deployed app URL and a successful live analysis (REL-001 release gate).
+- [x] Data source attribution, methodology, assumptions, limitations and future improvements documented.
+- [x] Accurate AI-tool disclosure (documented in docs/skills-and-tools.md and docs/ai-development-workflow.md).
 - [ ] Confirm submission deadline/link outside this workspace; user submits or explicitly authorizes submission.
 - [ ] Optional short demo video. Never upload the private assessment brief.
+

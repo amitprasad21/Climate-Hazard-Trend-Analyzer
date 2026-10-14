@@ -250,3 +250,44 @@ The user rotated the MongoDB Atlas password and updated `backend/.env`. A live v
 - **End-to-End Analysis**: Cold analysis for New Delhi 2020 completed in 2.74 s (fetched NASA POWER daily data, normalized, persisted daily records and analysis cache to Atlas). Repeat analysis completed in 57.5 ms from the Atlas cache with identical science.
 - **Status**: BE-009 is verified DONE.
 
+## Continuous Integration (REL-002), 2026-10-14
+
+Configured root-level GitHub Actions workflow at `.github/workflows/ci.yml`:
+- **Docs job**: Runs `scripts/check_docs.py --self-test` and `scripts/check_docs.py` ensuring link, metadata, concept and contrast integrity.
+- **Backend job**: Tests Python 3.12 and 3.14 matrix with `uv sync --frozen`, `ruff check`, `compileall` and `pytest -m "not live_external"` without requiring external credentials.
+- **Frontend job**: Tests Node 24 with `npm ci`, `npm run typecheck`, `npm run lint`, `npm test` (Vitest) and `npm run build`.
+- **Concurrency**: Cancels obsolete in-flight runs on the same branch.
+- **Status**: REL-002 is verified DONE.
+
+## Telemetry and Benchmarks (BE-011), 2026-10-14
+
+Added operational benchmarking tool and operational runbook:
+- **Benchmark script**: `scripts/benchmark.py` exercises `/api/v1/health/live`, `/api/v1/health/ready` and synchronous `/api/v1/analysis` across configurable iterations and concurrency levels, computing p50/p95 latency and throughput.
+- **Operational runbook**: `backend/docs/runbook.md` documents deployment configuration, container runtime, rolling updates, health endpoints, log formats, backup/restore procedures and operational troubleshooting.
+- **Status**: BE-011 is verified DONE.
+
+## Responsive and Accessibility Completion (FE-005), 2026-10-14
+
+Automated 9-viewport responsive test suite implemented in `frontend/tests/responsiveness.test.tsx`:
+- **Viewports tested**: All 9 canonical breakpoints (320px, 375px, 414px, 768px, 1024px, 1280px, 1440px, 1680px, 1920px) across idle, populated, and error states (27 test cases).
+- **Checks performed**: Zero horizontal/vertical unintended overflow, SVG chart viewBox scaling, panel word wrapping (`overflow-wrap: anywhere`), interactive control hit areas (≥44px), and keyboard focus outline visibility.
+- **Accessibility**: axe-core 4.13.0 automated accessibility audit confirmed 0 violations across all UI states.
+- **Status**: FE-005 is verified DONE.
+
+## Bounding Box Regional Sampling & Area Selection (BE-006, FE-004), 2026-10-14
+
+Implemented constrained bounding box regional sampling with spatial aggregation:
+- **Backend engine (`backend/app/spatial.py`)**: 3x3 cell-center grid sampling ($lat_i = south + (2i+1)\frac{\Delta lat}{6}$, $lon_j = west + (2j+1)\frac{\Delta lon}{6}$) with cosine-latitude weighting $w_k = \frac{\cos(lat_k)}{\sum \cos(lat_j)}$. Grid cell deduplication combines weights when points share an identical resolved grid cell.
+- **Backend tests (`backend/tests/test_spatial.py`)**: 10 unit tests verifying center math, cosine normalization, cell deduplication, dates aggregation priority, and validation limits (max 2.0° span, -85° to 85° latitude limits). Total backend test suite: 271 passed.
+- **Frontend controls (`frontend/src/form.ts`, `frontend/src/components/AnalysisControls.tsx`)**: Added area selection radio toggle ("Single point" vs "Bounding box (area)") and North, South, East, West inputs with strict bounding validation.
+- **Frontend spatial disclosure (`frontend/src/components/ResultsView.tsx`)**: Explicitly discloses 3x3 grid sampling, sample point coordinates, and disclaimer that no continuous station heatmap is implied.
+- **Status**: BE-006 and FE-004 are verified DONE.
+
+## Client-Side CSV Export (Bonus Feature), 2026-10-14
+
+Added CSV download for heatwave events in `frontend/src/components/ResultsView.tsx`:
+- **Format**: RFC 4180 compliant CSV formatting `Start Date`, `End Date`, `Duration (days)`, `Mean Excess (°C)`, `Peak Excess (°C)`, and `Boundary Censored`.
+- **Implementation**: Pure client-side `Blob` and temporary object URL generation with automatic revocation; zero server dependencies.
+- **Tests**: Verified with mock URL creation and revocation assertion in `frontend/tests/DashboardPage.test.tsx`.
+
+
