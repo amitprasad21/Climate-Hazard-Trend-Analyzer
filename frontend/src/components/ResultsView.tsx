@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
-import type { AnalysisResponse, TrendDirection } from "../api/types";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import type { AnalysisResponse, HeatwaveEvent, TrendDirection } from "../api/types";
+import { dayOfYear, eventsTouching, exclusionText } from "../calendar";
 import {
   PROVIDER_NAMES,
   formatCoordinate,
@@ -9,7 +10,8 @@ import {
   formatSigned,
   formatTimestamp,
 } from "../format";
-import { LineChart } from "./LineChart";
+import { HeatwaveCalendar } from "./HeatwaveCalendar";
+import { LineChart, type Series } from "./LineChart";
 
 const TRENDS: Record<TrendDirection, { symbol: string; text: string; badgeClass: string }> = {
   increasing: { symbol: "↗", text: "Increasing", badgeClass: "trend-increasing" },
@@ -72,8 +74,27 @@ function Metrics({ result }: { result: AnalysisResponse }) {
   );
 }
 
-function Charts({ result }: { result: AnalysisResponse }) {
-  const years = result.annual.map((row) => row.year);
+type YearLink = {
+  activeYear: number | null;
+  selectedYear: number | null;
+  onActiveYearChange: (year: number | null) => void;
+  onSelectYear: (year: number) => void;
+};
+
+function Charts({ result, link }: { result: AnalysisResponse; link: YearLink }) {
+  const { years, frequency, duration, anomaly } = useMemo(() => {
+    const annual = result.annual;
+    const frequency: Series[] = [
+      { label: "Events per year", values: annual.map((r) => r.event_count), variant: "primary" },
+      { label: "5-year rolling mean", values: annual.map((r) => r.frequency_rolling_5y), variant: "secondary" },
+    ];
+    const duration: Series[] = [
+      { label: "Mean duration", values: annual.map((r) => r.mean_duration_days), variant: "primary" },
+      { label: "Longest event", values: annual.map((r) => r.max_duration_days), variant: "secondary" },
+    ];
+    const anomaly: Series[] = [{ label: "Anomaly", values: annual.map((r) => r.tmax_anomaly_c), variant: "primary" }];
+    return { years: annual.map((row) => row.year), frequency, duration, anomaly };
+  }, [result]);
   return (
     <div className="charts">
       <div className="chart-primary">
@@ -84,10 +105,8 @@ function Charts({ result }: { result: AnalysisResponse }) {
           unit="events"
           digits={1}
           integerAxis
-          series={[
-            { label: "Events per year", values: result.annual.map((r) => r.event_count), variant: "primary" },
-            { label: "5-year rolling mean", values: result.annual.map((r) => r.frequency_rolling_5y), variant: "secondary" },
-          ]}
+          series={frequency}
+          {...link}
         />
       </div>
       <LineChart
@@ -95,10 +114,8 @@ function Charts({ result }: { result: AnalysisResponse }) {
         description="Mean observed days of events starting each year; years without events have no value."
         years={years}
         unit="days"
-        series={[
-          { label: "Mean duration", values: result.annual.map((r) => r.mean_duration_days), variant: "primary" },
-          { label: "Longest event", values: result.annual.map((r) => r.max_duration_days), variant: "secondary" },
-        ]}
+        series={duration}
+        {...link}
       />
       <LineChart
         title="Daily maximum temperature anomaly"
@@ -107,8 +124,115 @@ function Charts({ result }: { result: AnalysisResponse }) {
         unit="°C"
         digits={2}
         zeroLine
-        series={[{ label: "Anomaly", values: result.annual.map((r) => r.tmax_anomaly_c), variant: "primary" }]}
+        series={anomaly}
+        {...link}
       />
+    </div>
+  );
+}
+
+function withUnit(value: number | null, digits: number, unit: string): string {
+  return value === null ? "—" : `${formatNumber(value, digits)} ${unit}`;
+}
+
+function eventSummary(event: HeatwaveEvent, year: number): string {
+  const [startYear] = dayOfYear(event.start_date);
+  const [endYear] = dayOfYear(event.end_date);
+  const notes = [
+    startYear < year && `started in ${startYear}`,
+    endYear > year && `continues into ${endYear}`,
+    event.boundary_censored && "cut off by the period edge",
+  ].filter(Boolean);
+  const dates = `${formatDate(event.start_date)} – ${formatDate(event.end_date)}`;
+  const peak = formatNumber(event.max_excess_c, 2);
+  return `${dates}: ${event.duration_days} days, peak ${peak} °C above the threshold${notes.length ? ` (${notes.join("; ")})` : ""}`;
+}
+
+function YearDetail({ result, year, onClear }: { result: AnalysisResponse; year: number; onClear: () => void }) {
+  const headingId = useId();
+  const row = result.annual.find((r) => r.year === year);
+  if (!row) return null;
+  const reasons = result.data_quality.years.find((y) => y.year === year)?.excluded_reasons ?? [];
+  const touching = eventsTouching(result.events, year);
+  return (
+    <section className="year-detail" aria-labelledby={headingId}>
+      <div className="year-detail-header">
+        <h3 id={headingId}>{year} in detail</h3>
+        <button type="button" className="secondary-action" onClick={onClear}>
+          Show all years
+        </button>
+      </div>
+      {row.eligible ? (
+        <dl className="facts">
+          <dt>Events started</dt>
+          <dd>{formatNumber(row.event_count, 0)}</dd>
+          <dt>Heatwave days</dt>
+          <dd>{formatNumber(row.heatwave_days, 0)}</dd>
+          <dt>Mean duration</dt>
+          <dd>{withUnit(row.mean_duration_days, 1, "days")}</dd>
+          <dt>Longest event</dt>
+          <dd>{withUnit(row.max_duration_days, 0, "days")}</dd>
+          <dt>Mean daily maximum</dt>
+          <dd>{withUnit(row.mean_tmax_c, 1, "°C")}</dd>
+          <dt>Anomaly vs 1991–2020</dt>
+          <dd>{row.tmax_anomaly_c === null ? "—" : `${formatSigned(row.tmax_anomaly_c, 2)} °C`}</dd>
+          <dt>Valid days</dt>
+          <dd>{formatPercent(row.coverage_fraction)}</dd>
+        </dl>
+      ) : (
+        <p className="notice">
+          Excluded from the analysis: {reasons.map(exclusionText).join("; ") || "missing data"}. Valid days:{" "}
+          {formatPercent(row.coverage_fraction)}.
+        </p>
+      )}
+      {touching.length > 0 ? (
+        <ul className="year-events">
+          {touching.map((event) => (
+            <li key={event.start_date}>{eventSummary(event, year)}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">No heatwave event touched this year.</p>
+      )}
+    </section>
+  );
+}
+
+function YearPanel({
+  result,
+  selectedYear,
+  onSelectYear,
+}: {
+  result: AnalysisResponse;
+  selectedYear: number | null;
+  onSelectYear: (year: number | null) => void;
+}) {
+  const selectId = useId();
+  return (
+    <div className="year-panel subpanel">
+      <div className="year-picker">
+        <label htmlFor={selectId}>Inspect a year</label>
+        <select
+          id={selectId}
+          value={selectedYear ?? ""}
+          onChange={(event) => onSelectYear(event.target.value ? Number(event.target.value) : null)}
+        >
+          <option value="">All years</option>
+          {result.annual.map((row) => (
+            <option key={row.year} value={row.year}>
+              {row.eligible ? row.year : `${row.year} (excluded)`}
+            </option>
+          ))}
+        </select>
+      </div>
+      {selectedYear === null ? (
+        <p className="muted">
+          Hover a year to highlight it in every chart. Select one in the calendar, a chart or this list to see its
+          values and events; Escape clears it.
+        </p>
+      ) : (
+        <YearDetail result={result} year={selectedYear} onClear={() => onSelectYear(null)} />
+      )}
     </div>
   );
 }
@@ -252,11 +376,12 @@ function exportEventsCsv(result: AnalysisResponse) {
   URL.revokeObjectURL(url);
 }
 
-function Events({ result }: { result: AnalysisResponse }) {
+function Events({ result, year }: { result: AnalysisResponse; year: number | null }) {
   if (result.events.length === 0) return null;
+  const shown = year === null ? result.events : eventsTouching(result.events, year);
   return (
     <details className="data-table events">
-      <summary>Show all {result.events.length} events</summary>
+      <summary>{year === null ? `Show all ${shown.length} events` : `Show events touching ${year} (${shown.length})`}</summary>
       <div className="table-toolbar">
         <button
           type="button"
@@ -278,7 +403,7 @@ function Events({ result }: { result: AnalysisResponse }) {
           </tr>
         </thead>
         <tbody>
-          {result.events.map((event) => (
+          {shown.map((event) => (
             <tr key={event.start_date}>
               <td>{formatDate(event.start_date)}</td>
               <td>{formatDate(event.end_date)}</td>
@@ -329,6 +454,21 @@ export function ResultsView({
   result: AnalysisResponse;
   savedInBrowser?: boolean;
 }) {
+  const [activeYear, setActiveYear] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const years = useMemo(() => result.annual.map((r) => r.year), [result]);
+  const excludedYears = useMemo(() => result.annual.filter((r) => !r.eligible).map((r) => r.year), [result]);
+
+  useEffect(() => {
+    if (selectedYear === null) return;
+    const clear = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedYear(null);
+    };
+    document.addEventListener("keydown", clear);
+    return () => document.removeEventListener("keydown", clear);
+  }, [selectedYear]);
+
+  const link: YearLink = { activeYear, selectedYear, onActiveYearChange: setActiveYear, onSelectYear: setSelectedYear };
   return (
     <div className="results-body">
       <p className="result-context">
@@ -340,13 +480,25 @@ export function ResultsView({
         </p>
       )}
       <Metrics result={result} />
-      <Charts result={result} />
+      <div className="timeline">
+        <HeatwaveCalendar
+          years={years}
+          excludedYears={excludedYears}
+          events={result.events}
+          activeYear={activeYear}
+          selectedYear={selectedYear}
+          onActiveYearChange={setActiveYear}
+          onSelectYear={setSelectedYear}
+        />
+        <YearPanel result={result} selectedYear={selectedYear} onSelectYear={setSelectedYear} />
+      </div>
+      <Charts result={result} link={link} />
       <div className="details-grid">
         <RegionContext result={result} />
         <Quality result={result} />
       </div>
       <Findings result={result} />
-      <Events result={result} />
+      <Events result={result} year={selectedYear} />
       <Method result={result} savedInBrowser={savedInBrowser} />
     </div>
   );

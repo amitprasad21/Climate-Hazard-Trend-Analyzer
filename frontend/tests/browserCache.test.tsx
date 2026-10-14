@@ -86,3 +86,18 @@ it("never saves failures", async () => {
   expect(screen.queryByText(/saved in this browser/)).toBeNull();
   expect(document.querySelector(".result-context")).toBeTruthy();
 });
+
+it("starts a reused result with no year selected", async () => {
+  const later = { ...validFor(3_600_000), request_id: "second-request", period: { start_year: 2002, end_year: 2003 } };
+  later.annual = later.annual.slice(1);
+  fetchMock.mockResolvedValueOnce(json(validFor(3_600_000))).mockResolvedValueOnce(json(later));
+  render(<DashboardPage />);
+  await analyze("New Delhi");
+  await analyze("New Delhi", "2002");
+  fireEvent.change(screen.getByLabelText("Inspect a year"), { target: { value: "2003" } });
+  expect(screen.getByRole("region", { name: "2003 in detail" })).toBeTruthy();
+
+  await analyze("New Delhi");
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(screen.queryByRole("region", { name: /in detail/ })).toBeNull();
+});

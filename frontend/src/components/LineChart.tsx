@@ -1,5 +1,6 @@
-import { useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useId, useRef, useState } from "react";
 import { formatNumber } from "../format";
+import { useWidth } from "../hooks/useWidth";
 
 export type Series = {
   label: string;
@@ -16,25 +17,15 @@ type Props = {
   digits?: number;
   integerAxis?: boolean;
   zeroLine?: boolean;
+  activeYear?: number | null;
+  selectedYear?: number | null;
+  onActiveYearChange?: (year: number | null) => void;
+  onSelectYear?: (year: number) => void;
 };
 
 const HEIGHT = 280;
 const MARGIN = { top: 16, right: 20, bottom: 36, left: 56 };
 const MIN_LABEL_SPACING = 52;
-
-function useWidth(ref: RefObject<HTMLElement | null>, fallback = 640) {
-  const [width, setWidth] = useState(fallback);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(([entry]) => {
-      setWidth(Math.max(240, Math.floor(entry.contentRect.width)));
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [ref]);
-  return width;
-}
 
 export function niceTicks(min: number, max: number, count: number, integer: boolean): number[] {
   const span = max - min || 1;
@@ -83,11 +74,19 @@ export function LineChart({
   digits = 1,
   integerAxis = false,
   zeroLine = false,
+  activeYear,
+  selectedYear = null,
+  onActiveYearChange,
+  onSelectYear,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const width = useWidth(container);
   const titleId = useId();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [ownActiveYear, setOwnActiveYear] = useState<number | null>(null);
+  const shownYear = onActiveYearChange ? (activeYear ?? null) : ownActiveYear;
+  const setShownYear = onActiveYearChange ?? setOwnActiveYear;
+  const hoveredIndex = shownYear === null ? -1 : years.indexOf(shownYear);
+  const selectedIndex = selectedYear === null ? -1 : years.indexOf(selectedYear);
   const plotWidth = width - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
   const values = series.flatMap((s) => s.values).filter((v): v is number => v !== null);
@@ -104,30 +103,26 @@ export function LineChart({
   const gradientId = `area-grad-${titleId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
   const baselineY = zeroLine && low < 0 ? y(0) : MARGIN.top + plotHeight;
 
-  function handlePointerMove(event: React.PointerEvent<SVGSVGElement>) {
-    if (!container.current || years.length === 0) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    if (mouseX < MARGIN.left || mouseX > width - MARGIN.right) {
-      setHoveredIndex(null);
-      return;
+  function yearAt(event: React.MouseEvent<SVGSVGElement>): number | null {
+    const box = event.currentTarget.getBoundingClientRect();
+    // Pointer pixels are mapped into viewBox units, which differ whenever the drawing is scaled.
+    const mouseX = (event.clientX - box.left) * (box.width ? width / box.width : 1);
+    if (years.length === 0 || mouseX < MARGIN.left || mouseX > width - MARGIN.right) return null;
+    let closest = years[0];
+    for (const year of years) {
+      if (Math.abs(x(year) - mouseX) < Math.abs(x(closest) - mouseX)) closest = year;
     }
-    const relX = (mouseX - MARGIN.left) / plotWidth;
-    let closestIndex = 0;
-    let minDistance = Infinity;
-    years.forEach((year, index) => {
-      const yearX = (x(year) - MARGIN.left) / plotWidth;
-      const dist = Math.abs(relX - yearX);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestIndex = index;
-      }
-    });
-    setHoveredIndex(closestIndex);
+    return closest;
   }
 
-  function handlePointerLeave() {
-    setHoveredIndex(null);
+  function handlePointerMove(event: React.PointerEvent<SVGSVGElement>) {
+    const year = yearAt(event);
+    if (year !== shownYear) setShownYear(year);
+  }
+
+  function handleClick(event: React.MouseEvent<SVGSVGElement>) {
+    const year = yearAt(event);
+    if (year !== null) onSelectYear?.(year);
   }
 
   return (
@@ -150,12 +145,13 @@ export function LineChart({
             <svg
               // The viewBox keeps the drawing fitted even before a resize measurement arrives.
               viewBox={`0 0 ${width} ${HEIGHT}`}
-              className="chart-svg"
+              className={onSelectYear ? "chart-svg selectable" : "chart-svg"}
               role="img"
               aria-labelledby={titleId}
               aria-describedby={`${titleId}-summary`}
               onPointerMove={handlePointerMove}
-              onPointerLeave={handlePointerLeave}
+              onPointerLeave={() => setShownYear(null)}
+              onClick={onSelectYear ? handleClick : undefined}
             >
             <desc id={`${titleId}-summary`}>
               {`${title}, ${years[0]}–${years[years.length - 1]}. Exact values are in the data table.`}
@@ -217,7 +213,16 @@ export function LineChart({
                 </g>
               )),
             )}
-            {hoveredIndex !== null && (
+            {selectedIndex >= 0 && (
+              <line
+                className="selected-line"
+                x1={x(years[selectedIndex])}
+                x2={x(years[selectedIndex])}
+                y1={MARGIN.top}
+                y2={HEIGHT - MARGIN.bottom}
+              />
+            )}
+            {hoveredIndex >= 0 && (
               <g className="chart-focus" aria-hidden="true">
                 <line
                   className="crosshair-line"
@@ -242,7 +247,7 @@ export function LineChart({
               </g>
             )}
           </svg>
-          {hoveredIndex !== null && (
+          {hoveredIndex >= 0 && (
             <div
               className="chart-tooltip"
               aria-hidden="true"

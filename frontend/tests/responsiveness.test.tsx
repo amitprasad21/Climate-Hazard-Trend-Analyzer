@@ -63,9 +63,9 @@ describe("FE-005: 9 Responsive Viewports Automated Verification", () => {
     expect(screen.getByText("Frequency trend")).toBeTruthy();
     expect(screen.getByText("95th-percentile threshold")).toBeTruthy();
 
-    // Verify all 3 figures (SVG charts) render
+    // The heatwave calendar and the three line charts
     const figures = screen.getAllByRole("figure");
-    expect(figures).toHaveLength(3);
+    expect(figures).toHaveLength(4);
 
     // Verify chart SVGs have responsive viewBox and accessibility labels
     for (const figure of figures) {

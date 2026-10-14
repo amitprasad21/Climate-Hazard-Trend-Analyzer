@@ -853,3 +853,137 @@ input[aria-invalid="true"] {
   grid-column: 1 / -1;
   min-height: 18rem;
 }
+
+.timeline {
+  display: grid;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .timeline {
+    grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  }
+}
+
+.calendar .chart-canvas {
+  overflow: visible;
+}
+
+.calendar-row,
+.chart-svg.selectable {
+  cursor: pointer;
+}
+
+.row-bg {
+  fill: transparent;
+}
+
+.row-active .row-bg {
+  fill: var(--color-surface-hover);
+}
+
+.row-selected .row-bg {
+  fill: var(--color-surface-hover);
+  stroke: var(--color-chart-primary);
+  stroke-width: 1;
+}
+
+.row-selected .axis-label {
+  fill: var(--color-text-primary);
+  font-weight: 650;
+}
+
+.bar-high {
+  fill: var(--color-chart-primary);
+}
+
+.bar-mid {
+  fill: var(--color-chart-secondary);
+}
+
+.bar-low {
+  fill: var(--color-chart-tertiary);
+}
+
+.bar-censored {
+  stroke: var(--color-chart-primary);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.swatch-bar.bar-censored {
+  fill: transparent;
+}
+
+.continuation-mark {
+  fill: var(--color-chart-secondary);
+  pointer-events: none;
+}
+
+.row-excluded-line,
+.swatch-excluded line {
+  stroke: var(--color-chart-tertiary);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 3;
+}
+
+.row-excluded-line {
+  pointer-events: none;
+}
+
+.calendar-tooltip {
+  max-width: min(15rem, 100%);
+  min-width: 0;
+}
+
+.tooltip-above {
+  transform: translateY(-100%);
+}
+
+.tooltip-detail {
+  margin: 0;
+  color: var(--color-text-supporting);
+}
+
+.selected-line {
+  stroke: var(--color-chart-primary);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.year-panel {
+  align-content: start;
+}
+
+.year-picker {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.year-picker label {
+  font-weight: 600;
+}
+
+.year-detail {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.year-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.year-events {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}

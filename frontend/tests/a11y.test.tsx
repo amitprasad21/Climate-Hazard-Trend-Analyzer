@@ -55,7 +55,7 @@ it("has no detectable violations with populated results and with an error", asyn
   await act(async () => {
     fireEvent.submit(screen.getByRole("button", { name: "Analyze trends" }));
   });
-  expect(screen.getAllByRole("figure")).toHaveLength(3);
+  expect(screen.getAllByRole("figure")).toHaveLength(4);
   expect(await violations()).toEqual([]);
 
   cleanup();

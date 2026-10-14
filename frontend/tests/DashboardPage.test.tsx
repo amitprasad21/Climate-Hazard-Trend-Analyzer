@@ -128,7 +128,8 @@ it("submits the exact contract request once and renders backend results", async 
   const results = screen.getByRole("region", { name: "Results" });
   expect(within(results).getByText("Synthetic Place")).toBeTruthy();
   expect(within(results).getByText("38.1")).toBeTruthy();
-  expect(within(results).getAllByRole("figure")).toHaveLength(3);
+  expect(within(results).getAllByRole("figure")).toHaveLength(4);
+  expect(within(results).getByRole("heading", { name: "Heatwave calendar" })).toBeTruthy();
   expect(within(results).getByText("Synthetic insight sentence.")).toBeTruthy();
   expect(within(results).getByText("Not reported by the provider")).toBeTruthy();
   expect(within(results).queryByText(/Partial data/)).toBeNull();

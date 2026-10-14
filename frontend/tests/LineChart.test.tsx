@@ -53,6 +53,19 @@ it("explains an empty chart instead of drawing a false line", () => {
   expect(getByText("No year in this period has a value for this chart.")).toBeTruthy();
 });
 
+it("maps pointer pixels through the viewBox when the drawing is scaled", () => {
+  const picked: number[] = [];
+  const { container } = render(
+    <LineChart title="Frequency" description="Synthetic" years={[2001, 2002, 2003, 2004]} unit="events"
+      series={[{ label: "Events", values: [1, 2, 3, 4], variant: "primary" }]} onSelectYear={(year) => picked.push(year)} />,
+  );
+  const svg = container.querySelector("svg[role=img]") as SVGSVGElement;
+  // Drawn at half its 640-unit viewBox width, so 125 px on screen is 250 units: nearest 2002.
+  svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 320, height: 140 }) as DOMRect;
+  fireEvent.click(svg, { clientX: 125 });
+  expect(picked).toEqual([2002]);
+});
+
 it("renders interactive crosshair and floating tooltip on pointer hover", () => {
   const { container } = render(
     <LineChart
