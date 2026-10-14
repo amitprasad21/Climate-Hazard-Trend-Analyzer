@@ -784,3 +784,13 @@ input[aria-invalid="true"] {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.server-status {
+  color: var(--color-text-supporting);
+  font-size: var(--text-small);
+  max-width: 70ch;
+}
+
+.server-status:empty {
+  display: none;
+}

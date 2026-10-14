@@ -9,6 +9,8 @@ import type {
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 export const ANALYSIS_TIMEOUT_MS = 100_000;
 export const SEARCH_TIMEOUT_MS = 20_000;
+// Free hosting can take about a minute to wake a sleeping server.
+export const HEALTH_TIMEOUT_MS = 90_000;
 
 export class ApiError extends Error {
   readonly status: number;
@@ -154,4 +156,17 @@ export function searchRegions(query: string, signal: AbortSignal) {
     SEARCH_TIMEOUT_MS,
     isRegionSearch,
   ).then((body) => body.results);
+}
+
+function isHealth(value: unknown): value is { status: "ok" } {
+  return isRecord(value) && value.status === "ok";
+}
+
+export function checkHealth(signal: AbortSignal): Promise<void> {
+  return request(
+    "/api/v1/health",
+    { method: "GET", headers: { Accept: "application/json" }, signal },
+    HEALTH_TIMEOUT_MS,
+    isHealth,
+  ).then(() => undefined);
 }

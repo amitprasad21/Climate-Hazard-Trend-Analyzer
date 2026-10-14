@@ -14,6 +14,7 @@ import {
 } from "./form";
 import { useAnalysis, type AnalysisState } from "./hooks/useAnalysis";
 import { useRegionSearch } from "./hooks/useRegionSearch";
+import { serverStatusMessage, useServerStatus, type HealthCheck } from "./hooks/useServerStatus";
 
 function statusMessage(state: AnalysisState, dirty: boolean): string {
   switch (state.phase) {
@@ -32,12 +33,13 @@ function statusMessage(state: AnalysisState, dirty: boolean): string {
   }
 }
 
-export function DashboardPage() {
+export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {}) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [dirty, setDirty] = useState(false);
   const analysis = useAnalysis();
   const search = useRegionSearch();
+  const server = useServerStatus(checkServer);
   const latestYear = latestCompleteYear(new Date());
   const fieldRefs = {
     regionKind: useRef<HTMLInputElement>(null),
@@ -103,6 +105,9 @@ export function DashboardPage() {
         <h1>Climate Hazard Analyzer</h1>
         <p className="subtitle">
           Historical heatwave trends for a chosen location, calculated from reanalysis data.
+        </p>
+        <p className="server-status" aria-live="polite">
+          {serverStatusMessage(server.status, server.wasSlow)}
         </p>
       </header>
 
