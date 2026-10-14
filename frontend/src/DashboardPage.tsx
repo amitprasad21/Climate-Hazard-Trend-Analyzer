@@ -24,7 +24,8 @@ function statusMessage(state: AnalysisState, dirty: boolean): string {
     }
     case "success": {
       const { summary, period } = state.result;
-      return `Analysis complete: ${summary.event_count} heatwave events in ${period.start_year}–${period.end_year}.`;
+      const reused = state.savedInBrowser ? " (saved result, no new request)" : "";
+      return `Analysis complete: ${summary.event_count} heatwave events in ${period.start_year}–${period.end_year}${reused}.`;
     }
     case "error":
       return `Analysis failed: ${state.error.message}`;
@@ -135,7 +136,9 @@ export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {
 
         <section className="panel" aria-labelledby="results-heading" aria-busy={state.phase === "loading"}>
           <h2 id="results-heading">Results</h2>
-          {state.phase === "success" && <ResultsView result={state.result} />}
+          {state.phase === "success" && (
+            <ResultsView result={state.result} savedInBrowser={state.savedInBrowser} />
+          )}
           {state.phase === "error" && <ErrorPanel error={state.error} onRetry={retry} />}
           {state.phase === "loading" && (
             <p className="empty-state">Fetching and analysing daily maxima. Results appear here when ready.</p>

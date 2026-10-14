@@ -296,7 +296,7 @@ function Events({ result }: { result: AnalysisResponse }) {
   );
 }
 
-function Method({ result }: { result: AnalysisResponse }) {
+function Method({ result, savedInBrowser }: { result: AnalysisResponse; savedInBrowser: boolean }) {
   const { methodology: method, source, cache, summary } = result;
   return (
     <section className="method" aria-labelledby="method-heading">
@@ -315,11 +315,20 @@ function Method({ result }: { result: AnalysisResponse }) {
         ({source.model}), retrieved {formatTimestamp(source.retrieved_at)}. Result {cache.hit ? "served from the cache, " : ""}
         generated {formatTimestamp(cache.generated_at)}.
       </p>
+      {savedInBrowser && (
+        <p>Shown from a result saved in this browser earlier in this session; no new request was sent.</p>
+      )}
     </section>
   );
 }
 
-export function ResultsView({ result }: { result: AnalysisResponse }) {
+export function ResultsView({
+  result,
+  savedInBrowser = false,
+}: {
+  result: AnalysisResponse;
+  savedInBrowser?: boolean;
+}) {
   return (
     <div className="results-body">
       <p className="result-context">
@@ -338,7 +347,7 @@ export function ResultsView({ result }: { result: AnalysisResponse }) {
       </div>
       <Findings result={result} />
       <Events result={result} />
-      <Method result={result} />
+      <Method result={result} savedInBrowser={savedInBrowser} />
     </div>
   );
 }
