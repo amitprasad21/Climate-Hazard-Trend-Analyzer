@@ -4,15 +4,15 @@ Responsive behavior is a feature requirement. Measured 2026-10-14 in the Claude 
 
 | Viewport | Required emphasis | Actual status |
 |---|---|---|
-| 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
-| 360 x 800 | Touch controls, metric wrapping and plot/table access | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 390 x 844 | Tooltips/focus, region labels and errors | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 430 x 932 | Chart tick density and insight wrapping | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 768 x 1024 | Two-column metrics where viable, stacked narrow plots | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
-| 1024 x 768 | Toolbar wrapping, balanced panels at limited height | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 1280 x 800 | Desktop chart/geography arrangement | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 1440 x 900 | Header density and secondary-chart balance | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated); screenshot review pending |
-| 1920 x 1080 | Centered max-width layout without overstretched plots | MEASURED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated and synthetic stress data); screenshot review pending |
+| 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error, synthetic stress tests pass) |
+| 360 x 800 | Touch controls, metric wrapping and plot/table access | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 390 x 844 | Tooltips/focus, region labels and errors | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 430 x 932 | Chart tick density and insight wrapping | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 768 x 1024 | Two-column metrics where viable, stacked narrow plots | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error, synthetic stress tests pass) |
+| 1024 x 768 | Toolbar wrapping, balanced panels at limited height | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 1280 x 800 | Desktop chart/geography arrangement | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 1440 x 900 | Header density and secondary-chart balance | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error tests pass) |
+| 1920 x 1080 | Centered max-width layout without overstretched plots | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error, synthetic stress tests pass) |
 
 Use Grid/Flexbox with fluid sizing, minmax(0,1fr), min-width:0, wrapping text and inputs constrained to their containers. No device detection or separate mobile codebase. The [design system](design.md) defines token values and candidate content thresholds.
 

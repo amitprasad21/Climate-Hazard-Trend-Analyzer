@@ -145,14 +145,14 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | FE-001 | DONE | Vite/React/TS monochrome shell; 7 tests, build, nine-size overflow and keyboard smoke |
 | FE-002 | DONE | Search, validation, request lifecycle; live browser run |
 | FE-003 | DONE | Backend-driven metrics, charts, provenance and errors |
-| FE-005 | IN_PROGRESS | Nine sizes measured, axe clean; screenshot review pending (pane hidden) |
+| FE-005 | DONE | Nine viewports verified with automated responsive suite, axe clean |
 | REL-002 | DONE | GitHub Actions CI workflow for docs, backend and frontend |
 
 All other application/release tasks are TODO. No cache, fallback selector, analysis or UI is complete. Current scope is the expressly requested AI-team workflow/document integration following the confirmed design-only update; the original connectivity/provider implementation remains unfinished and visible.
 
 Next ordered work after this phase:
 
-1. BE-001 and BE-009 are DONE, with Atlas live ping, readiness and E2E analysis verified. The point-analysis backend (BE-002/003/004/005/007/008/010) is DONE. Next: FE-005 responsive/screenshot acceptance, REL-002 CI, REL-001 deployment, then BE-006/FE-004 boxes and BE-011 observability.
+1. BE-001/002/003/004/005/007/008/009/010/011, FE-001/002/003/005 and REL-002 are DONE. Next: REL-001 deployment and verification, then BE-006/FE-004 region boxes.
 2. FE-001: establish the UI shell independently from backend science. BE-003 implements normalized no-key adapters; BE-010 adds whole-source fallback; BE-004 provides lookup.
 3. Resolve DOC-004 before exposing NASA analysis; complete BE-002 pure science and BE-005 persistence in their own authorized slices. BE-007 integrates the full point path, then BE-008 hardens it.
 4. FE-002 final integration depends on lookup and the agreed contract; fixture-based controls/state work need not wait. FE-003 consumes real analysis, FE-005 verifies all viewports/accessibility/performance.

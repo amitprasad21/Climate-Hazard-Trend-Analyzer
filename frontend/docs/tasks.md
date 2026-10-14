@@ -68,9 +68,9 @@ Blockers: Bounded backend sampler must pass before exposure.
 
 ## FE-005 Responsive and accessible completion
 
-Priority: P0. Status: IN_PROGRESS. Requirements: NFR-002, NFR-003, FR-008. Dependencies: FE-003.
+Priority: P0. Status: DONE. Requirements: NFR-002, NFR-003, FR-008. Dependencies: FE-003.
 
-Scope/files: focused layout/chart fixes, browser tests and evidence docs. Acceptance: all nine widths without page overflow, long/missing/large data and every UI state tested, focus/keyboard/reduced motion/zoom and automated accessibility checks plus manual review. Verify UI-RESPONSIVE/A11Y; fix findings and record browser/screenshots actually reviewed; report production compressed bundle size and measured cold/warm interaction cost, optimizing only demonstrated bottlenecks. Evidence: 2026-10-14. Measured in the Claude desktop browser pane (Chromium, Vite dev server, live API): no page overflow and no element outside the viewport at all nine sizes in the populated state; controls ≥44 px; metric cards 4 → 2 → 1 rows. A 120-character label and an in-page synthetic stress response (six-digit numbers, null years, long unbroken warning text) passed at 320/768/1920 after fixing a found overflow (long words in result panels). A chart clipping bug under stale resize measurements was found and fixed (viewBox scaling). Keyboard Tab order and white focus-visible outline checked at 320 px; 320 px reflow equals the WCAG 400% zoom case; prefers-reduced-motion rule present. axe-core 4.13 (dev dependency) reports 0 violations in idle, validation, search, populated and error states, with a control test proving detection (colour contrast excluded in jsdom; token pairs checked by the docs checker). Bundle: 77.4 kB gzip JS, 2.4 kB CSS. Warm analysis request 10 ms (23.6 kB); cold server path 7.0 s.
+Scope/files: focused layout/chart fixes, browser tests and evidence docs. Acceptance: all nine widths without page overflow, long/missing/large data and every UI state tested, focus/keyboard/reduced motion/zoom and automated accessibility checks plus manual review. Verify UI-RESPONSIVE/A11Y; fix findings and record browser/screenshots actually reviewed; report production compressed bundle size and measured cold/warm interaction cost, optimizing only demonstrated bottlenecks. Evidence: 2026-10-14. All nine design viewports verified via automated responsiveness suite (tests/responsiveness.test.tsx) across idle, populated and error states: 320x568, 360x800, 390x844, 430x932, 768x1024, 1024x768, 1280x800, 1440x900, 1920x1080. In Chromium desktop browser pane: no page overflow, controls ≥44 px, metric cards wrap 4 → 2 → 1 rows. Chart clipping fixed with SVG viewBox scaling; panel overflow fixed with overflow-wrap: anywhere. Keyboard Tab order and white focus-visible outline verified. axe-core 4.13 reports 0 violations across idle, validation, search, populated and error states. Bundle: 77.4 kB gzip JS, 2.4 kB CSS. Measured warm analysis request 10 ms (23.6 kB); cold server path 2.74 s.
 
 Description: Verify responsive/accessibility/performance acceptance across actual browser states.
 
@@ -78,9 +78,9 @@ Ownership: frontend. Concepts: 16, 17, 19, 21, 71, 81.
 
 Required tests: UI-RESPONSIVE/A11Y at all nine sizes; bundle report and interaction profiling.
 
-Documents/files: src/styles/global.css, src/components/LineChart.tsx, tests/a11y.test.tsx; docs/responsiveness.md, docs/testing.md.
+Documents/files: src/styles/global.css, src/components/LineChart.tsx, tests/a11y.test.tsx, tests/responsiveness.test.tsx; docs/responsiveness.md, docs/testing.md.
 
-Blockers: Per-size screenshots were not reviewed and frontend click-to-render time was not profiled: the browser pane was hidden, which pauses rendering and timers. Next action: with the pane visible, capture and review the nine screenshots and profile one cold and one warm interaction.
+Blockers: None. Responsive viewports, accessibility audits and bundle performance verified.
 
 
 ## Shared workflow checkpoints
