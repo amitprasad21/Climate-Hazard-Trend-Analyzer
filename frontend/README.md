@@ -19,4 +19,4 @@ Read [instructions](AGENTS.md), [docs](docs/README.md), [tasks](docs/tasks.md), 
 
 The frontend renders backend results, never scientific calculations. A production API failure is visible with safe error envelopes rather than replaced with fake climate values.
 
-This directory belongs to the single root repository ([DOC-002](../TASKS.md)). All 102 frontend tests, automated accessibility audit (0 axe-core violations), and 9 responsive viewports (320px–1920px) are verified.
+This directory belongs to the single root repository ([DOC-002](../TASKS.md)). All 107 frontend tests, automated accessibility audit (0 axe-core violations), and 9 responsive viewports (320px–1920px) are verified.

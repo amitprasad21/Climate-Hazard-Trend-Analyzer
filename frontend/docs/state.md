@@ -1,6 +1,6 @@
 # Frontend state
 
-Reviewed 2026-10-14. FE-001 to FE-008 are DONE: the dashboard searches places, takes a bounding box or a map pick, validates input, wakes the API on page load, runs analyses against the real API with stale-response protection, reuses saved results inside their backend expiry, shows honest loading stages, and renders metrics, a heatwave calendar linked to three line charts, a year detail panel, provenance, quality, insights, events (with CSV export) and errors.
+Reviewed 2026-10-14. FE-001 to FE-009 are DONE: the dashboard searches places, takes a bounding box or a map pick, validates input, wakes the API on page load, runs analyses against the real API with stale-response protection, reuses saved results inside their backend expiry, shows honest loading stages, and renders metrics, a heatwave calendar linked to three line charts, a year detail panel, provenance, quality, insights, events (with CSV export) and errors.
 
 State ownership: the page owns draft inputs; `useServerStatus` owns the one wake-up check; `useAnalysis` owns immutable submitted parameters, the active request token/controller, phase, result, safe error and the per-tab saved-result cache; `ResultsView` owns the hovered and selected year for one result; presentation receives props. No global store.
 
@@ -29,4 +29,6 @@ Year views live inside Success and Partial. Hovering a calendar row or a chart s
 
 All 13 frontend design concepts (9–21) are expanded in [system design](system.frontend.md); the [85-concept coverage](../../docs/system-design-coverage.md) maps tasks/tests. Client source types follow contract 0.2 (NASA POWER or Open-Meteo ERA5, nullable resolved point).
 
-Next: deployment of the map branch after approval. The root README now explains the architectural decisions and trade-offs. Open gap: the form allows start years from 1940, but production (fallback off) serves 1981 onward and rejects earlier years with a clear message. Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).
+The health check also reports the server's earliest start year; until it answers, the form keeps the 1940 outer bound and the server remains authoritative.
+
+Next: deployment of the start-year branch after approval. Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).

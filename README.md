@@ -77,7 +77,7 @@ Each decision below says what was chosen, why, what it costs, and what was rejec
 
 **Why.** No credentials to manage or leak, and a result that mixes two models would make trends meaningless.
 
-**Cost.** Production runs with the fallback off (`WEATHER_FALLBACK_ENABLED=false`) because Open-Meteo's free tier is non-commercial. Production therefore serves periods from 1981 only, and a NASA outage fails visibly instead of degrading. NASA POWER also does not report which grid cell it used, so the app shows only the requested point for NASA results.
+**Cost.** Production runs with the fallback off (`WEATHER_FALLBACK_ENABLED=false`) because Open-Meteo's free tier is non-commercial. Production therefore serves periods from 1981 only; the health response reports that year and the form follows it. A NASA outage fails visibly instead of degrading. NASA POWER also does not report which grid cell it used, so the app shows only the requested point for NASA results.
 
 ### 3.4 Synchronous REST with a hard deadline
 
@@ -251,9 +251,9 @@ Commands, as run on 2026-10-15:
 
 | Suite | Command | Result |
 |---|---|---|
-| Backend | `cd backend && uv run pytest -m "not live_external"` | 271 passed, 8 skipped; the 8 are MongoDB repository tests, which also passed when `CLIMATE_TEST_MONGODB_URI` pointed at a local MongoDB |
+| Backend | `cd backend && uv run pytest -m "not live_external"` | 273 passed, 8 skipped; the 8 are MongoDB repository tests, which also passed when `CLIMATE_TEST_MONGODB_URI` pointed at a local MongoDB |
 | Backend lint | `uv run ruff check app tests` | Runs in CI |
-| Frontend | `cd frontend && npm test` | 102 passed |
+| Frontend | `cd frontend && npm test` | 107 passed |
 | Frontend static checks | `npm run typecheck`, `npm run lint`, `npm run build` | Pass |
 | Documentation | `python scripts/check_docs.py --self-test` and `python scripts/check_docs.py` | Pass (61 Markdown files, 85 concepts, 28 requirements) |
 | Benchmark | `python scripts/benchmark.py --base-url http://127.0.0.1:8000 --iterations 10` | Cold and warm latency with warm p50/p95; see the verification log |
@@ -288,7 +288,7 @@ Measured results (details and conditions in the [verification log](docs/verifica
 ## 9. Limitations and known gaps
 
 1. **Reanalysis, not stations.** NASA POWER (about 0.5° × 0.625°) and ERA5 (0.25°) describe a grid cell's average, not a street or an urban heat island.
-2. **Production covers 1981 onward.** The form's hint still allows 1940 because the optional ERA5 fallback can serve it. In production the fallback is off, and earlier start years are rejected with a clear message.
+2. **Production covers 1981 onward.** With the ERA5 fallback off, the earliest start year is 1981. The server reports it in its health response, and the form uses it for validation, hints and presets. Before the first health answer arrives, the form allows 1940 and the server rejects earlier years with a clear message.
 3. **Fixed annual threshold.** It finds hot-season extremes, not unseasonal warmth.
 4. **Descriptive trends only.** No significance test, and no causal claims.
 5. **UTC days.** Daily maxima are per UTC calendar day, which can differ from local days.

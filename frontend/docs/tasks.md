@@ -133,9 +133,9 @@ Blockers: None.
 
 ## FE-009 Start years follow the server
 
-Priority: P1. Status: IN_PROGRESS. Requirements: FR-003. Dependencies: FE-006, BE-012.
+Priority: P1. Status: DONE. Requirements: FR-003. Dependencies: FE-006, BE-012.
 
-Scope/files: src/api/client.ts, src/hooks/useServerStatus.ts, src/form.ts, src/components/AnalysisControls.tsx, src/DashboardPage.tsx and tests. Acceptance: the start-year validation, hint, input minimum and presets use the backend's `earliest_start_year`; a missing or invalid value keeps the 1940 outer bound; an early year is refused locally with a message naming the server's first year, and no request is sent. Evidence: none yet.
+Scope/files: src/api/client.ts, src/hooks/useServerStatus.ts, src/form.ts, src/components/AnalysisControls.tsx, src/DashboardPage.tsx and tests. Acceptance: the start-year validation, hint, input minimum and presets use the backend's `earliest_start_year`; a missing or invalid value keeps the 1940 outer bound; an early year is refused locally with a message naming the server's first year, and no request is sent. Evidence: 2026-10-15, commit 0012532. `checkHealth` returns `{ earliestStartYear }` (missing or non-integer → null); `useServerStatus` exposes it; `startYearFloor` keeps 1940 unless the reported year lies between 1940 and the latest complete year; validation, hint, input `min` and presets use it. Tests: tests/supportedYears.test.tsx (5); suite 107 passed; typecheck, lint pass; 8 of 8 frontend mutants caught. Browser (Claude pane, Chromium, local API with the fallback off): hint "Full calendar years from 1981 to 2025", input minimum 1981, "Full record" chose 1981–2025, 1975 was refused with "Start in 1981 or later, when the data available here begins.", focus moved to the start year and no request was sent; 1981–1990 for New Delhi then completed (24 events, 3 s). Not verified: the deployed site before merging.
 
 Description: Stop inviting start years the deployment cannot serve.
 

@@ -141,7 +141,7 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | BE-008 | DONE | CORS, body/media limits, rate/capacity limits, safe 500s |
 | BE-010 | DONE | Whole-source selector with ordered fallback |
 | BE-011 | DONE | Standalone benchmark script and operational runbook verified |
-| BE-012 | IN_PROGRESS | Health reports the earliest supported start year |
+| BE-012 | DONE | Health reports the earliest supported start year |
 | BE-009 | DONE | Live Atlas ping, readiness and E2E persistence verified |
 | FE-001 | DONE | Vite/React/TS monochrome shell; 7 tests, build, nine-size overflow and keyboard smoke |
 | FE-002 | DONE | Search, validation, request lifecycle; live browser run |
@@ -151,7 +151,7 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | FE-006 | DONE | Wake-up, browser result reuse and honest loading stages |
 | FE-007 | DONE | Heatwave calendar and linked year views |
 | FE-008 | DONE | Leaflet result map and map picker |
-| FE-009 | IN_PROGRESS | Start years follow the server |
+| FE-009 | DONE | Start years follow the server |
 | BE-006 | DONE | 3x3 cell-center sampling with cosine weighting and cell dedup |
 | REL-002 | DONE | GitHub Actions CI workflow for docs, backend and frontend |
 

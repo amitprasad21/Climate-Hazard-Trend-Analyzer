@@ -308,3 +308,12 @@ Branch `feature/leaflet-map`, not yet merged or deployed. Frontend only; adds le
 - **Browser** (Claude pane, Chromium, local API restarted on current code): OpenStreetMap tiles load and render grayscale and dark with the credit; city selection centres the picker; real and dispatched clicks set points; two corner clicks built a box whose analysis (13 s) shows the box and 9 sample points; a NASA POWER point shows no invented cell; 0 px page overflow at all nine sizes.
 - **Found during verification**: CARTO tiles need a key (watermark tiles), so the basemap changed to OpenStreetMap with the user's approval; three UI defects fixed (map not centring on chosen places, light credit box, stale city label after a map pick). The previously running local API predated BE-006 and rejected boxes until restarted.
 - **Not verified**: the deployed site with maps, a physical touch device, per-size screenshots.
+
+## Server-reported earliest start year (BE-012, FE-009), 2026-10-15
+
+Branch `feature/supported-years`, not yet merged or deployed. Additive `earliest_start_year` on the health response (contract 0.2).
+
+- **Checks**: backend 273 passed, 8 skipped (MongoDB repository tests), ruff clean; frontend 107 passed, typecheck and lint pass; docs checker passes.
+- **Mutation checks**: 10 of 10 caught (8 frontend, 2 backend).
+- **Browser** (Claude pane, Chromium, local API with `WEATHER_FALLBACK_ENABLED=false`): health reported 1981; the form showed 1981 in its hint, minimum and full-record preset; 1975 was refused locally with no request; 1981–1990 completed for New Delhi.
+- **Not verified**: the deployed site with this change.
