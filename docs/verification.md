@@ -317,4 +317,4 @@ Branch `feature/supported-years`, not yet merged or deployed. Additive `earliest
 - **Checks**: backend 273 passed, 8 skipped (MongoDB repository tests), ruff clean; frontend 107 passed, typecheck and lint pass; docs checker passes.
 - **Mutation checks**: 10 of 10 caught (8 frontend, 2 backend).
 - **Browser** (Claude pane, Chromium, local API with `WEATHER_FALLBACK_ENABLED=false`): health reported 1981; the form showed 1981 in its hint, minimum and full-record preset; 1975 was refused locally with no request; 1981–1990 completed for New Delhi.
-- **Not verified**: the deployed site with this change.
+- **Production** (after merging to `main`, CI passed): Render health reported `earliest_start_year` 1981; the live form showed 1981 in its hint and minimum and refused 1975 without a request.
