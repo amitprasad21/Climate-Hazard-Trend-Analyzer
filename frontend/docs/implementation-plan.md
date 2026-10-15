@@ -92,3 +92,7 @@ Verification: Vitest, typecheck, lint, build with the initial and map chunk size
 Commit plan: plan, ADR and traceability → dependency → geometry → result map → map picker → evidence and state documents.
 
 Result (2026-10-15): built with these changes from the plan. CARTO served only "API KEY REQUIRED" watermark tiles, so the basemap is OpenStreetMap (user decision, ADR-024 corrected). Browser review found three issues that tests had not: a chosen city did not move the map (external places now centre and zoom it, map picks never move it), the credit box kept Leaflet's light background (Leaflet's stylesheet loads later with equal specificity, so overrides use `.leaflet-map.leaflet-container`), and a city-button label survived a map pick far away (the label is now kept only if the user typed it). The result map and picker landed in one commit because they share `src/map/maps.tsx`; the per-test timeout was raised to 15 s after a cold run timed out.
+
+## Supported start year slice (FE-009 with BE-012), 2026-10-15
+
+The form's earliest start year comes from the backend's health response instead of a hard-coded 1940. The plan, edge cases and tests are in the [backend implementation plan](../../backend/docs/implementation-plan.md#supported-start-year-slice-be-012-fe-009-2026-10-15).

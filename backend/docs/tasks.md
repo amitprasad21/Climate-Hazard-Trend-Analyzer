@@ -193,6 +193,26 @@ Documents/files: scripts/benchmark.py, backend/docs/runbook.md, backend/docs/sec
 Blockers: None. Benchmark script and operational runbook verified.
 
 
+## BE-012 Report the earliest supported start year
+
+Priority: P1. Status: IN_PROGRESS. Requirements: FR-003. Dependencies: BE-001, BE-010.
+
+Scope/files: app/selector.py, app/services/analysis.py, app/schemas.py, app/main.py, tests/test_health.py, root contract.
+
+Acceptance: `GET /api/v1/health` returns `earliest_start_year`, derived from the enabled providers by the same function that words the `UNSUPPORTED_PERIOD` error; liveness keeps no I/O and `no-store`; readiness keeps its shape; the contract documents the additive field.
+
+Evidence: none yet.
+
+Description: Let clients learn which start years this deployment can serve.
+
+Ownership: backend. Concepts: 7, 23, 24, 78.
+
+Required tests: CONTRACT-OUTPUT (health with and without the fallback), CONTRACT-INPUT (period error names the same year).
+
+Documents/files: [plan](implementation-plan.md), [contract](../../INTEGRATION_CONTRACT.md).
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns roles and execution/approval gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns each approved tool installation and smoke test; root TASKS defines them once.

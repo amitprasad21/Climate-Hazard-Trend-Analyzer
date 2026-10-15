@@ -131,6 +131,22 @@ Documents/files: [plan](implementation-plan.md), [design](design.md), docs/scree
 
 Blockers: None.
 
+## FE-009 Start years follow the server
+
+Priority: P1. Status: IN_PROGRESS. Requirements: FR-003. Dependencies: FE-006, BE-012.
+
+Scope/files: src/api/client.ts, src/hooks/useServerStatus.ts, src/form.ts, src/components/AnalysisControls.tsx, src/DashboardPage.tsx and tests. Acceptance: the start-year validation, hint, input minimum and presets use the backend's `earliest_start_year`; a missing or invalid value keeps the 1940 outer bound; an early year is refused locally with a message naming the server's first year, and no request is sent. Evidence: none yet.
+
+Description: Stop inviting start years the deployment cannot serve.
+
+Ownership: frontend. Concepts: 7, 14, 24, 78.
+
+Required tests: UI-LIFECYCLE and CONTRACT-INPUT/OUTPUT (client parsing, hook, form messages and presets).
+
+Documents/files: [plan](../../backend/docs/implementation-plan.md), docs/state.md.
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns the six roles and stage gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns individual approved installation plus smoke testing; their definitions remain in root TASKS.
