@@ -115,6 +115,22 @@ Documents/files: [plan](implementation-plan.md), [design](design.md), docs/scree
 
 Blockers: None.
 
+## FE-008 Leaflet result map and map picker
+
+Priority: P1. Status: IN_PROGRESS. Requirements: FR-001, FR-009, FR-010, NFR-003. Dependencies: FE-004, FE-007.
+
+Scope/files: src/map/geometry.ts, src/map/maps.tsx, src/map/lazy.ts, src/components/ResultsView.tsx, src/components/AnalysisControls.tsx, src/DashboardPage.tsx, src/main.tsx, styles, package.json/lock and tests. Acceptance: a lazily loaded Leaflet map with grayscale CARTO tiles and the required credit shows the analysed point, any provider-reported grid cell, or the box with its 9 sample points, never an intensity shading; a picker map sets a point by click or by "Use map centre" and a box by two corner clicks, never overwriting a typed label; typed and searched coordinates appear on the map; the initial bundle stays within budget with Leaflet in its own chunk. Verify UI-GEOGRAPHY, E2E-LOCATION, keyboard path, axe and nine sizes. Evidence: none yet.
+
+Description: Give the analysis real geographic context and a faster way to choose a place or area, without inventing spatial data.
+
+Ownership: frontend. Concepts: 9, 17, 18, 19, 58.
+
+Required tests: UI-GEOGRAPHY (shapes, honest cell display), picker interactions and label rule, page integration, axe, nine-size overflow, bundle report.
+
+Documents/files: [plan](implementation-plan.md), [design](design.md), docs/screens.md, docs/system.frontend.md, [ADR-024](../../docs/decisions/README.md).
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns the six roles and stage gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns individual approved installation plus smoke testing; their definitions remain in root TASKS.

@@ -1,6 +1,6 @@
 # Frontend implementation sequence
 
-[Tasks](tasks.md) owns completion. FE-001 to FE-007 are DONE; the slice below records how FE-006 (fast start) and FE-007 (heatwave calendar) were planned and built. Before significant implementation, follow [the shared workflow](../../docs/ai-development-workflow.md): add a concrete slice plan here with package-version research, files/interfaces, edge cases, tests and approval status. Existing milestones specify order, not approval to build every feature. Apply UI review before extensive markup and review/simplification/final verification after the slice.
+[Tasks](tasks.md) owns completion. FE-001 to FE-007 are DONE; the slices below record how FE-006 (fast start) and FE-007 (heatwave calendar) were built and plan FE-008 (Leaflet map and map picker). Before significant implementation, follow [the shared workflow](../../docs/ai-development-workflow.md): add a concrete slice plan here with package-version research, files/interfaces, edge cases, tests and approval status. Existing milestones specify order, not approval to build every feature. Apply UI review before extensive markup and review/simplification/final verification after the slice.
 
 | Milestone | Tasks / prerequisites | Verification gate / risk |
 |---|---|---|
@@ -11,6 +11,7 @@
 | Regional extension | FE-004 after bounded backend sampler | Honest geographic approximation and invalid-box behavior |
 | Fast start | FE-006 after FE-005 | Real server/progress states, browser result reuse within backend expiry; no fake progress |
 | Time-series storytelling | FE-007 after FE-006 | Event calendar from backend events, linked year state, keyboard path; no derived science |
+| Map context and picking | FE-008 after FE-004 and FE-007 | Lazily loaded Leaflet chunk, grayscale tiles, honest grid-cell display, typed inputs stay the keyboard path |
 
 Choose the smallest adequate chart dependency during implementation and pin it; no chart/UI/state package has been installed (FE-001 added only React, Vite and test/lint tooling). Inspect an actual reference image if later supplied. Complete frontend/backend point integration before bonus map/export features. Shared-wire changes update both sides before release.
 
@@ -67,3 +68,25 @@ Verification: Vitest, typecheck, lint, build size, axe; nine-size overflow measu
 Commit plan: plan and traceability → wake-up → browser reuse → loading view → calendar → linked year state → evidence and state documents.
 
 Result (2026-10-14): built as planned; evidence is in [tasks](tasks.md). Deviations: the calendar and linked year state landed in one commit because their tests share fixtures; the year panel sits beside the calendar from 1024 px (below it on narrower screens) so selecting a year never moves the calendar; excluded years are named in the legend, the chart description and the year list ("2004 (excluded)") instead of an in-row label, which would collide with 8 px rows.
+
+## Leaflet result map and map picker slice (FE-008), 2026-10-15
+
+Approval: after FE-006/FE-007 were merged and deployed, the user approved adding `leaflet@1.9.4` (current stable; 2.0 is alpha) with `@types/leaflet@1.9.22`, the CARTO Dark Matter basemap, and scope "result map + map picker" (2026-10-15). No React wrapper (react-leaflet 5 would be a third package for two small components). Mapbox is out because it needs a key. Recorded as [ADR-024](../../docs/decisions/README.md). Branch `feature/leaflet-map`; merging to `main` deploys and is confirmed separately. No backend or contract change.
+
+| Part | Design | Files |
+|---|---|---|
+| Geometry | Pure helpers: the shapes to draw for a result (requested point; for a provider-reported grid point, that cell as resolved ± half the grid size; for a box, its outline and the 9 sample points), a clicked map position converted to a valid point (longitude wrapped, rounded to 4 dp), two clicked corners converted to an ordered box, and the label for a map-picked point. A cell is never drawn when the provider did not report it (NASA POWER), because its position would be a guess. | `src/map/geometry.ts` |
+| Leaflet layer | Imperative Leaflet in `useEffect`, one map per component, removed on unmount. Vector circle markers and rectangles only (the default marker images are colored PNGs). CARTO `dark_all` tiles with the required OSM/CARTO credit, tile pane forced to grayscale, `noWrap` world bounds, wheel zoom off so page scrolling is never captured. The attribution prefix drops Leaflet's colored flag. | `src/map/maps.tsx`, `src/styles/global.css` |
+| Lazy loading | `React.lazy` splits Leaflet and its CSS into a separate chunk; a same-size outline holds the space while it loads. The page receives the map components like the existing health check, so page tests stay isolated and dedicated map tests load the real module. | `src/map/lazy.ts`, `src/main.tsx`, `src/DashboardPage.tsx` |
+| Result map | In the region section: requested point (filled), reported grid point and its cell (hollow, dashed), or the box outline and 9 sample points; fitted to the shapes. Text beside it keeps the coordinates, and states when the provider did not report the cell. No intensity shading. | `src/components/ResultsView.tsx` |
+| Map picker | In the Location fieldset. Point mode: a click sets latitude and longitude (and a "Map point …" label when the label is empty or was set by the map); a "Use map centre" button gives keyboard users the same action after panning with arrow keys. Box mode: first click sets one corner, second click the opposite corner and fills south/west/north/east; spans over 2° are left to the existing validation message. Typed or searched coordinates are drawn on the map, which pans to them when they are outside the view. | `src/components/AnalysisControls.tsx`, `src/DashboardPage.tsx` |
+
+Honesty rules: the map shows only requested coordinates, provider-reported grid points and the box's sample points; the grayscale map tokens stay reserved because there is still no spatial intensity data.
+
+Edge cases: NASA (resolved null) versus Open-Meteo (resolved point), box sample points, longitude wrap and world edges, a box dragged in either direction, spans over 2°, a label typed by the user (never overwritten), search or quick-city selection moving the map, unmount mid-load, tiles failing to load (coordinates and text remain), touch dragging inside a 220–260 px map, 320 px width.
+
+Tests (written first): geometry (cells only when reported, cell bounds, box ordering and rounding, longitude wrap, labels); Leaflet components in jsdom with an SVG shim (shapes drawn, picker click and corner clicks call back with the right values, "Use map centre"); page integration through injected map components (fields filled, label rule, map follows typed coordinates); axe with maps present.
+
+Verification: Vitest, typecheck, lint, build with the initial and map chunk sizes reported separately, axe, nine-size overflow with both maps, and a real browser run (tiles load, click to pick, analysis, result map) locally and after deployment. Rollback: revert the branch and the dependency.
+
+Commit plan: plan, ADR and traceability → dependency → geometry → result map → map picker → evidence and state documents.
