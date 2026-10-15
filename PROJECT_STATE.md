@@ -26,7 +26,7 @@ DOC-005 is DONE for the supplied monochrome design/UI-brief alignment. frontend/
 
 DOC-006 is DONE for the refreshed tool audit. DOC-007 is DONE for [the canonical AI workflow](docs/ai-development-workflow.md), rule/plan/testing checkpoints and concept traceability. Documentation checker/self-tests pass for all Markdown files, requirements, tasks, concepts and contrast pairs. DOC-008 remains conditional TODO: no tool installation is selected or approved.
 
-DOC-002, DOC-004, BE-001 through BE-011, FE-001 through FE-007, and REL-002 are DONE. Only REL-001 (Deployment and Release) remains TODO.
+DOC-002, DOC-004, BE-001 through BE-011, FE-001 through FE-008, and REL-002 are DONE. Only REL-001 (Deployment and Release) remains TODO.
 
 ## Gaps and next work
 
@@ -34,4 +34,4 @@ Backend BE-001 through BE-011, FE-001 through FE-005 and REL-002 are DONE. Bound
 
 Deployment target accounts/hosting, remote repository synchronization, and final production smoke test are the remaining release prerequisites.
 
-Current work (2026-10-14): review feedback on visualization and responsiveness. FE-006 (wake-up, saved results, honest loading) and FE-007 (heatwave calendar with linked year views) are DONE on branch `feature/fast-start-and-heatwave-calendar`, not yet merged or deployed; production changes only after the branch is merged. A Leaflet map and a decisions/trade-offs README follow.
+Current work (2026-10-14): review feedback on visualization and responsiveness. FE-006 (wake-up, saved results, honest loading) and FE-007 (heatwave calendar with linked year views) were merged to `main` and deployed on 2026-10-15 (CI passed). FE-008 (Leaflet result map and map picker on OpenStreetMap tiles) is DONE on branch `feature/leaflet-map`, not yet merged or deployed. A decisions/trade-offs README follows.

@@ -13,7 +13,8 @@ Surface: `/`, mode **Operate**. The user selects where/when and receives an unde
 | Heatwave calendar | Backend events by year and day of year | One row per year, bars over event days shaded by labelled peak-excess groups, censored/excluded markers, hover details; selecting a row opens the year panel |
 | Year panel | Native "Inspect a year" list and the selected year's backend values | Values or exclusion reasons plus the events touching that year; filters the events table; Escape or "Show all years" clears it |
 | Frequency plot | Backend annual rows | Solid white annual counts, dashed gray rolling series with explicit labels, focus/table details; hovering or selecting a year is mirrored in every chart and the calendar |
-| Geographic context | Coordinates/sample points/source resolution | Grayscale context or unavailable state; no intensity shading without valid spatial data |
+| Map picker | Location fieldset; click, two corner clicks or "Use map centre" | Fills the coordinates (and a coordinate label unless one was typed); typed, searched or city-button places centre the map |
+| Geographic context | Coordinates/sample points/source resolution, with a dark OpenStreetMap result map | Grayscale context or unavailable state; no intensity shading without valid spatial data |
 | Secondary plots | Backend duration/anomaly | Gaps for nulls, readable years, data table alternative |
 | Insights/method | Evidence, coverage and warnings | Wrapping text, method disclosure, attribution links |
 

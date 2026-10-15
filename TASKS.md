@@ -149,7 +149,7 @@ Detailed task definitions above and in [backend](backend/docs/tasks.md) / [front
 | FE-005 | DONE | Nine viewports verified with automated responsive suite, axe clean |
 | FE-006 | DONE | Wake-up, browser result reuse and honest loading stages |
 | FE-007 | DONE | Heatwave calendar and linked year views |
-| FE-008 | IN_PROGRESS | Leaflet result map and map picker |
+| FE-008 | DONE | Leaflet result map and map picker |
 | BE-006 | DONE | 3x3 cell-center sampling with cosine weighting and cell dedup |
 | REL-002 | DONE | GitHub Actions CI workflow for docs, backend and frontend |
 

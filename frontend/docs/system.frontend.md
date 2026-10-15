@@ -16,7 +16,8 @@ Separation of concerns keeps a chart change from breaking network behavior. This
 | `AnalysisCharts` | Backend annual rows; focused chart configs and table alternatives | Null gaps, resize, legend/keyboard |
 | `HeatwaveCalendar` and `calendar.ts` | Backend events by year and day of year; display-only excess groups | Leap years, cross-year splits, markers, empty state |
 | Year panel (`ResultsView`) | Hovered/selected year shared by calendar and charts; selected year's values and events | Linked hover, click/select/Escape, filtered events table |
-| `RegionContext` | Region/source sample points and limitation | No fabricated heatmap; narrow layout |
+| `RegionContext` | Region/source sample points and limitation, with the result map | No fabricated heatmap; narrow layout |
+| `map/geometry.ts`, `map/maps.tsx`, `map/lazy.ts` | Shapes from a result or draft, map picks to coordinates; Leaflet result map and picker in a lazily loaded chunk, injected into the page like the health check | Honest cells, picks, centring, label rule, stable shapes, axe |
 | `InsightsPanel` | Backend evidence/warnings/methodology | Wrapping, semantic hierarchy |
 
 Keep the three plots together initially; split a chart only when its own behavior warrants it. Extract state/empty/error presentation only if reuse helps. Avoid a generic dashboard framework.

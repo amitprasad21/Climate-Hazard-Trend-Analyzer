@@ -169,6 +169,8 @@ A map is optional unless required by the agreed PRD. If implemented:
 
 If no valid map data is available, show an informative unavailable state rather than a decorative false visualization.
 
+Implemented in FE-008 as location context, not intensity: OpenStreetMap tiles turned grayscale and inverted to dark (`grayscale(1) invert(1) brightness(0.85) contrast(0.9)`), the OpenStreetMap credit on an overlay-colored box, zoom controls on `--color-surface-2` with `--color-control-border`. Requested points are white dots with a black edge; provider-reported grid points are hollow white rings with their cell as a gray dashed square; a requested box is a white dashed outline. Each map has a text legend, and the coordinates stay in the facts beside it. Wheel zoom is off so page scrolling is never captured. The intensity ramp tokens stay reserved.
+
 ### 7.6 Supporting charts
 
 Potential charts:

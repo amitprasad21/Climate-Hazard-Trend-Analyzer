@@ -4,6 +4,8 @@ Responsive behavior is a feature requirement. Measured 2026-10-14 in the Claude 
 
 Re-measured 2026-10-14 after FE-007 with the calendar, year panel and a selected year populated (New Delhi 1995–2024, local API, Claude pane Chromium, emulated sizes): 0 px page overflow at all nine sizes; the calendar and line-chart SVGs match their containers once the resize settles; at 320 px nothing in the results extends past the viewport and month labels become initials; the calendar and year panel share a row from 1024 px. Hidden-pane screenshots again proved unreliable (one 320 px capture showed a different scroll position), so visual review relied on one 1280 px capture plus measurements.
 
+Re-measured 2026-10-15 after FE-008 with the picker map and a box result map on the page: 0 px page overflow and nothing outside the viewport at all nine sizes; both maps fit their containers (255 and 221 px wide at 320 px, 735 and 702 px at 1920 px). Leaflet's own window-resize handling keeps the tiles filled.
+
 | Viewport | Required emphasis | Actual status |
 |---|---|---|
 | 320 x 568 | Single column, long title/input labels, action reachability, no page overflow | VERIFIED 2026-10-14: no overflow, nothing outside viewport, controls ≥44 px (idle, populated, error, synthetic stress tests pass) |

@@ -298,3 +298,13 @@ Branch `feature/fast-start-and-heatwave-calendar`, not yet merged or deployed. F
 - **Mutation checks**: 9 of 9 saved-result mutants and 16 of 16 calendar/linking mutants caught; each mutant was applied, the suites run, and the file restored.
 - **Browser** (Claude pane, Chromium, local API with local MongoDB, New Delhi 1995–2024): one completed health request per load; a repeated analysis sent no request and was marked saved; the calendar drew 30 rows and 64 bars for 64 backend events; real-pointer hover linked all three charts; selecting 2003 showed its values and 2 events and filtered the events table; 0 px page overflow at all nine sizes.
 - **Not verified**: a real Render cold start through the waking message (needs deployment), per-size screenshot review (hidden-pane captures were unreliable) and a physical touch device.
+
+## Leaflet result map and map picker (FE-008), 2026-10-15
+
+Branch `feature/leaflet-map`, not yet merged or deployed. Frontend only; adds leaflet 1.9.4 and @types/leaflet 1.9.22 (approved, ADR-024).
+
+- **Checks**: `npm test` 102 passed, `npm run typecheck`, `npm run lint`, `npm run build` (86.03 kB gzip initial JS; map chunk 44.53 kB JS and 6.36 kB CSS, loaded lazily); `npm audit` 0 vulnerabilities; axe 0 violations with both maps present.
+- **Mutation checks**: 15 of 15 map mutants caught (cell honesty, wrapping, clamping, box ordering, credit prefix, centring, corner reset, label rule, shape stability).
+- **Browser** (Claude pane, Chromium, local API restarted on current code): OpenStreetMap tiles load and render grayscale and dark with the credit; city selection centres the picker; real and dispatched clicks set points; two corner clicks built a box whose analysis (13 s) shows the box and 9 sample points; a NASA POWER point shows no invented cell; 0 px page overflow at all nine sizes.
+- **Found during verification**: CARTO tiles need a key (watermark tiles), so the basemap changed to OpenStreetMap with the user's approval; three UI defects fixed (map not centring on chosen places, light credit box, stale city label after a map pick). The previously running local API predated BE-006 and rejected boxes until restarted.
+- **Not verified**: the deployed site with maps, a physical touch device, per-size screenshots.
