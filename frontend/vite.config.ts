@@ -10,5 +10,6 @@ export default defineConfig({
     proxy: { "/api": "http://127.0.0.1:8000" },
   },
   preview: { host: "127.0.0.1", port: 4173, strictPort: true },
-  test: { environment: "jsdom", include: ["tests/**/*.test.{ts,tsx}"], css: true },
+  // axe and Leaflet tests take seconds under parallel load; the 5 s default timed out on a cold run.
+  test: { environment: "jsdom", include: ["tests/**/*.test.{ts,tsx}"], css: true, testTimeout: 15_000 },
 });
