@@ -29,4 +29,4 @@ Year views live inside Success and Partial. Hovering a calendar row or a chart s
 
 All 13 frontend design concepts (9–21) are expanded in [system design](system.frontend.md); the [85-concept coverage](../../docs/system-design-coverage.md) maps tasks/tests. Client source types follow contract 0.2 (NASA POWER or Open-Meteo ERA5, nullable resolved point).
 
-Next: the README of decisions and trade-offs, then deployment of the map branch after approval. Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).
+Next: deployment of the map branch after approval. The root README now explains the architectural decisions and trade-offs. Open gap: the form allows start years from 1940, but production (fallback off) serves 1981 onward and rejects earlier years with a clear message. Record checks in [testing](testing.md), task evidence in [tasks](tasks.md), and durable decisions in [memory](memory.md).
