@@ -1,6 +1,6 @@
 # Frontend/backend integration contract
 
-Contract version: **0.2** (approved by the user 2026-10-14 under DOC-004/ADR-017; supersedes the ERA5-only 0.1 source object). Backend implements every endpoint below (point regions; bbox returns UNSUPPORTED_REGION until BE-006) with contract tests; frontend consumers follow in FE-002/FE-003. Search/analysis endpoints and consumer schemas are planned. Schema changes require this document, both consumers, contract tests and method/cache-version review in the same logical change. The backend owns scientific results. The browser only formats, selects and renders returned values. The source object below describes NASA POWER and Open-Meteo ERA5 truthfully; see [Source provenance (0.2)](#source-provenance-02).
+Contract version: **0.3** (2026-10-15, ADR-025: Mann-Kendall trend test; see [Trend test (0.3)](#trend-test-03)). Version 0.2 was approved by the user 2026-10-14 under DOC-004/ADR-017 and superseded the ERA5-only 0.1 source object. Backend implements every endpoint below (point regions; bbox returns UNSUPPORTED_REGION until BE-006) with contract tests; frontend consumers follow in FE-002/FE-003. Search/analysis endpoints and consumer schemas are planned. Schema changes require this document, both consumers, contract tests and method/cache-version review in the same logical change. The backend owns scientific results. The browser only formats, selects and renders returned values. The source object below describes NASA POWER and Open-Meteo ERA5 truthfully; see [Source provenance (0.2)](#source-provenance-02).
 
 ## Conventions and validation
 
@@ -90,26 +90,30 @@ type Annual = {
   frequency_rolling_5y: number | null;
 };
 type AnalysisResponse = {
-  contract_version: "0.2"; request_id: string;
+  contract_version: "0.3"; request_id: string;
   region: PointRegion | BoxRegion; period: Period;
   status: "complete" | "partial";
   summary: {
     event_count: number; mean_duration_days: number | null;
     threshold_c: number;
-    trend_direction: "increasing" | "decreasing" | "flat" | "insufficient_data";
+    trend_direction: "increasing" | "decreasing" | "no_significant_trend" | "insufficient_data";
     frequency_slope_per_year: number | null;
+    mann_kendall: {
+      s: number; tau: number; z: number; p_value: number;
+      sens_slope_per_year: number; significant: boolean;
+    } | null;
     trend_year_count: number;
   };
   annual: Annual[]; events: Event[]; insights: Insight[]; warnings: Warning[];
   methodology: {
-    version: "heatwave-v1"; baseline_start: "1991-01-01";
+    version: "heatwave-v2"; baseline_start: "1991-01-01";
     baseline_end: "2020-12-31"; percentile: 95;
     percentile_method: "linear"; minimum_consecutive_days: 3;
     comparison: "strictly_greater"; daily_timezone: "UTC";
     aggregation: "point" | "nine_point_cosine_weighted_mean";
     anomaly_reference: "baseline_mean_daily_maximum";
-    trend_method: "ordinary_least_squares_descriptive";
-    significance_tested: false;
+    trend_method: "mann_kendall_sens_slope";
+    significance_tested: true; significance_level: 0.05;
   };
   data_quality: {
     baseline: Coverage; analysis: Coverage; years: YearCoverage[];
@@ -184,3 +188,14 @@ Browser deadline 100 s; server total budget 90 s including storage and upstream 
 Use exact configured development/production origins; credentials are false. Production preferably proxies `/api` to a single origin. Do not put MongoDB URLs or provider secrets in frontend environment variables. Responses use `Cache-Control: no-store` for browser/intermediary storage; MongoDB result caching is internal.
 
 Before implementing, create backend schema tests and matching frontend types/fixtures. Test null-vs-zero, partial years, backend validation and safe non-JSON failure handling. Additive response fields may be ignored by the frontend; breaking meanings/required fields require an explicit contract version change. Baseline, quality or algorithm changes also increment methodology and cache identity. No consumer recalculates threshold/trend locally.
+
+## Trend test (0.3)
+
+0.3 changes only the trend fields, the method identifier and `contract_version`; every other field keeps its 0.2 meaning.
+
+- `trend_direction` comes from a two-sided Mann-Kendall test (tie-corrected variance, normal approximation with continuity correction) on eligible annual event counts: `increasing` or `decreasing` only when p < 0.05, otherwise `no_significant_trend`; `insufficient_data` below 10 eligible years. `flat` is retired.
+- `summary.mann_kendall` reports S, Kendall's τ (S over the number of pairs), Z, the two-sided p-value, Sen's slope (median pairwise slope over actual years, in events per year) and `significant`. It is null when `trend_direction` is `insufficient_data`.
+- `frequency_slope_per_year` remains the descriptive ordinary least squares slope.
+- Warning `SERIAL_CORRELATION` appears when a significant result coincides with positive lag-1 autocorrelation of the Sen-detrended counts above Anderson's 95% bound, because the test assumes independent years.
+- The method identifier `heatwave-v2` is part of the analysis cache key, so 0.2 results are never served as 0.3.
+- Clients that must work across a rolling deployment accept both 0.2 (no `mann_kendall`) and 0.3.

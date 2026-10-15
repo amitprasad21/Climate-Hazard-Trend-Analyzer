@@ -1,6 +1,6 @@
 # Heatwave methodology
 
-Proposed implementation identifier: `heatwave-v1`. These assumptions are explicit project decisions. The assessment supplied an example run definition; it did not prescribe a reference baseline, calendar-day percentile, regional weighting or significance procedure. This is a historical exploratory indicator, not a national heat warning standard.
+Implementation identifier: `heatwave-v2` (v1 used a sign-only OLS trend; v2 adds the Mann-Kendall test, ADR-025). These assumptions are explicit project decisions. The assessment supplied an example run definition; it did not prescribe a reference baseline, calendar-day percentile, regional weighting or significance procedure. This is a historical exploratory indicator, not a national heat warning standard.
 
 ## Source and reference period
 
@@ -51,9 +51,13 @@ Exclude a whole run from event/summary statistics if it touches an ineligible an
 
 ## Trend and insights
 
-Use ordinary least squares on actual year numbers and eligible annual event counts with at least ten eligible years. The coefficient is events/year per year. Positive/negative/zero coefficient gives increasing/decreasing/flat; fewer years gives insufficient_data and null slope. Determine sign before rounding; flat does not mean no climatic change. This minimum is a pragmatic project rule, not a statistical significance threshold.
+Test eligible annual event counts, in year order, with at least ten eligible years (a pragmatic minimum; fewer years gives `insufficient_data` and null test and slope).
 
-No p-values, confidence intervals, causal claims or “statistically significant” text in v1. Count time series can have autocorrelation, sparse events and non-normal residuals; simple OLS is descriptive only. Do not calculate a percentage increase from a zero denominator. Prefer event totals, observed duration, eligible-year count, slope and explicit coverage warnings over dramatic percentage headlines.
+- **Mann-Kendall test.** S = Σ sign(yⱼ − yᵢ) over all pairs i < j. Var(S) = [n(n−1)(2n+5) − Σ t(t−1)(2t+5)] / 18, where t runs over groups of tied counts (annual counts tie often, so the correction matters). Z = (S − 1)/√Var for S > 0, (S + 1)/√Var for S < 0, and 0 when S = 0 or the variance is 0. Two-sided p = erfc(|Z|/√2). Kendall's τ = S / (n(n−1)/2). The normal approximation is adequate from the ten-year minimum upward.
+- **Direction.** `increasing` or `decreasing` (the sign of S) only when p < 0.05; otherwise `no_significant_trend`. A non-significant result is not evidence of no change; it means this record cannot distinguish a trend from year-to-year variation.
+- **Sen's slope.** The median of (yⱼ − yᵢ)/(xⱼ − xᵢ) over all pairs, with x the actual year, so excluded years remain gaps. Units: events per year, per year. The ordinary least squares slope is still reported as a descriptive reference.
+- **Serial correlation.** The test assumes independent years. Positive autocorrelation makes it reject too often, so when a result is significant and the lag-1 autocorrelation of the Sen-detrended counts (eligible years in order) exceeds Anderson's 95% bound (−1 + 1.96√(n−2))/(n−1), the result carries a `SERIAL_CORRELATION` warning. A Hamed-Rao variance correction would be the next refinement.
+- **Wording.** Insights give the outcome, p-value ("< 0.001" below that), eligible years and Sen's slope, and a significant result says the test describes this record, not its cause. No causal claims, no confidence intervals, and no percentage increase from a zero denominator. Prefer event totals, observed duration, eligible-year count, the test result and explicit coverage warnings over dramatic percentage headlines.
 
 Insights must include numerical evidence and period and be generated from the same result, without an LLM. Always distinguish source limitations, spatial approximation and missing-data bias from a substantive finding.
 
