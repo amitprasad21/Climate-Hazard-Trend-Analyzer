@@ -58,7 +58,7 @@ function isErrorResponse(value: unknown): value is ErrorResponse {
 export function isAnalysisResponse(value: unknown): value is AnalysisResponse {
   return (
     isRecord(value) &&
-    value.contract_version === "0.2" &&
+    (value.contract_version === "0.2" || value.contract_version === "0.3") &&
     isRecord(value.summary) &&
     isRecord(value.source) &&
     isRecord(value.data_quality) &&
@@ -145,7 +145,11 @@ export function analyzeHeatwaves(body: AnalysisRequest, signal: AbortSignal) {
     },
     ANALYSIS_TIMEOUT_MS,
     isAnalysisResponse,
-  );
+  ).then((result) => ({
+    ...result,
+    // A 0.2 response has no test result; null keeps one shape for the views.
+    summary: { ...result.summary, mann_kendall: result.summary.mann_kendall ?? null },
+  }));
 }
 
 export function searchRegions(query: string, signal: AbortSignal) {

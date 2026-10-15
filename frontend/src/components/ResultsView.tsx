@@ -18,6 +18,7 @@ import { LineChart, type Series } from "./LineChart";
 const TRENDS: Record<TrendDirection, { symbol: string; text: string; badgeClass: string }> = {
   increasing: { symbol: "↗", text: "Increasing", badgeClass: "trend-increasing" },
   decreasing: { symbol: "↘", text: "Decreasing", badgeClass: "trend-decreasing" },
+  no_significant_trend: { symbol: "→", text: "No clear trend", badgeClass: "trend-flat" },
   flat: { symbol: "→", text: "No linear change", badgeClass: "trend-flat" },
   insufficient_data: { symbol: "—", text: "Not estimated", badgeClass: "trend-insufficient" },
 };
@@ -33,6 +34,15 @@ function Metric({ label, value, unit, note }: { label: string; value: ReactNode;
       <p className="metric-note">{note}</p>
     </li>
   );
+}
+
+function trendNote(summary: AnalysisResponse["summary"], eligible: number): string {
+  const test = summary.mann_kendall;
+  if (summary.frequency_slope_per_year === null) return `Needs at least 10 eligible years (${eligible} available)`;
+  if (!test) return `${formatSigned(summary.frequency_slope_per_year, 3)} events per year, descriptive fit only`;
+  const p = test.p_value < 0.001 ? "p < 0.001" : `p = ${formatNumber(test.p_value, 3)}`;
+  const verdict = test.significant ? "" : " (not significant at 5%)";
+  return `Mann-Kendall ${p}${verdict}; Sen's slope ${formatSigned(test.sens_slope_per_year, 3)} events per year`;
 }
 
 function Metrics({ result }: { result: AnalysisResponse }) {
@@ -60,11 +70,7 @@ function Metrics({ result }: { result: AnalysisResponse }) {
             <span>{trend.text}</span>
           </span>
         }
-        note={
-          summary.frequency_slope_per_year === null
-            ? `Needs at least 10 eligible years (${eligible} available)`
-            : `${formatSigned(summary.frequency_slope_per_year, 3)} events per year, descriptive fit only`
-        }
+        note={trendNote(summary, eligible)}
       />
       <Metric
         label="95th-percentile threshold"
@@ -464,8 +470,10 @@ function Method({ result, savedInBrowser }: { result: AnalysisResponse; savedInB
       <p>
         A heatwave is {method.minimum_consecutive_days} or more consecutive UTC days whose daily maximum is strictly
         above the {method.percentile}th percentile ({formatNumber(summary.threshold_c, 3)} °C, linear interpolation)
-        of {method.baseline_start.slice(0, 4)}–{method.baseline_end.slice(0, 4)} daily maxima. Trends are ordinary
-        least squares on eligible annual counts and are descriptive; no significance test was applied.
+        of {method.baseline_start.slice(0, 4)}–{method.baseline_end.slice(0, 4)} daily maxima.{" "}
+        {method.significance_tested
+          ? "The trend comes from a two-sided Mann-Kendall test on eligible annual counts at the 5% level, with Sen's slope as its size; the least-squares slope is kept for reference. The test assumes independent years and describes this record, not its cause."
+          : "Trends are ordinary least squares on eligible annual counts and are descriptive; no significance test was applied."}
       </p>
       <p>
         Data from{" "}

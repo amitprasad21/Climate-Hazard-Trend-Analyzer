@@ -204,6 +204,11 @@ def test_serial_correlation_warning_only_for_a_significant_autocorrelated_trend(
     warning = next(w for w in result.warnings if w.code == "SERIAL_CORRELATION")
     assert "lag-1 r = 0.53" in warning.message
 
+    hump = {2001 + index: value for index, value in enumerate([0, 1, 2, 3, 4, 4, 3, 2, 1, 0])}
+    untrended = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(hump)))
+    assert untrended.trend_direction == "no_significant_trend"
+    assert "SERIAL_CORRELATION" not in {w.code for w in untrended.warnings}
+
     monotonic = {year: year - 2000 for year in range(2001, 2011)}
     clean = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(monotonic)))
     assert "SERIAL_CORRELATION" not in {w.code for w in clean.warnings}

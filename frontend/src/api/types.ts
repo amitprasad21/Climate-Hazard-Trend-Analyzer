@@ -64,10 +64,19 @@ export type Insight = {
   text: string;
   evidence: { metric: string; value: number; unit: string; years: number[] }[];
 };
-export type TrendDirection = "increasing" | "decreasing" | "flat" | "insufficient_data";
+// "flat" belongs to contract 0.2 and is accepted only while both versions can be deployed.
+export type TrendDirection = "increasing" | "decreasing" | "no_significant_trend" | "flat" | "insufficient_data";
+export type MannKendall = {
+  s: number;
+  tau: number;
+  z: number;
+  p_value: number;
+  sens_slope_per_year: number;
+  significant: boolean;
+};
 
 export type AnalysisResponse = {
-  contract_version: "0.2";
+  contract_version: "0.2" | "0.3";
   request_id: string;
   region: PointRegion | BoxRegion;
   period: Period;
@@ -78,6 +87,7 @@ export type AnalysisResponse = {
     threshold_c: number;
     trend_direction: TrendDirection;
     frequency_slope_per_year: number | null;
+    mann_kendall: MannKendall | null;
     trend_year_count: number;
   };
   annual: Annual[];
@@ -85,7 +95,7 @@ export type AnalysisResponse = {
   insights: Insight[];
   warnings: ResultWarning[];
   methodology: {
-    version: "heatwave-v1";
+    version: string;
     baseline_start: string;
     baseline_end: string;
     percentile: number;
@@ -96,7 +106,8 @@ export type AnalysisResponse = {
     aggregation: "point" | "nine_point_cosine_weighted_mean";
     anomaly_reference: string;
     trend_method: string;
-    significance_tested: false;
+    significance_tested: boolean;
+    significance_level?: number;
   };
   data_quality: {
     baseline: Coverage;

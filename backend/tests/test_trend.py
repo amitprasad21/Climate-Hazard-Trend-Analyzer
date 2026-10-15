@@ -71,3 +71,12 @@ def test_lag1_autocorrelation_and_anderson_bound():
     assert lag1_autocorrelation([1, -1, 1, -1]) == pytest.approx(-0.75)
     assert lag1_autocorrelation([2, 2, 2]) is None
     assert serial_correlation_bound(10) == pytest.approx((-1 + 1.96 * math.sqrt(8)) / 9)
+
+
+def test_a_p_value_between_five_and_ten_percent_is_not_significant():
+    result = mann_kendall(series([2, 0, 0, 1, 3, 1, 2, 3, 2, 3]))
+    # Tie groups of 2, 2, 3 and 3: Var = (2250 - 2 * 18 - 2 * 66) / 18.
+    assert result.s == 21
+    assert result.variance == pytest.approx(2082 / 18)
+    assert 0.05 < result.p_value < 0.10
+    assert not result.significant
