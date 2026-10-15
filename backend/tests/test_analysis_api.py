@@ -45,7 +45,7 @@ def test_full_point_analysis_round_trip_and_cache_hit(db_settings):
     assert (one.cache.hit, two.cache.hit) == (False, True)
     assert two.region.label == "Delhi" and len(calls) == 1
     assert first.headers["Cache-Control"] == "no-store"
-    assert first.json()["contract_version"] == "0.2"
+    assert first.json()["contract_version"] == "0.3"
 
 
 @pytest.mark.parametrize("exc,status,code,retryable", [

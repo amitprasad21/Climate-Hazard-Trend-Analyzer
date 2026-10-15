@@ -163,7 +163,7 @@ def test_end_to_end_bbox_analysis_service():
     svc, calls = service()
     response = asyncio.run(svc.analyze(request, "req-bbox-123"))
 
-    assert response.contract_version == "0.2"
+    assert response.contract_version == "0.3"
     assert response.request_id == "req-bbox-123"
     assert response.region.kind == "bbox"
     assert response.region.label == "Delhi NCR"

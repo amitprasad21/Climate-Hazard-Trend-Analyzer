@@ -170,6 +170,7 @@ def test_increasing_trend_uses_actual_year_numbers_and_rolling_gaps():
     assert result.trend_year_count == 10
     assert result.frequency_slope_per_year == pytest.approx(1.0)
     assert result.trend_direction == "increasing"
+    assert (result.mann_kendall.s, result.mann_kendall.sens_slope) == (45, pytest.approx(1.0))
     rolling = {row.year: row.frequency_rolling_5y for row in result.annual}
     assert [rolling[y] for y in range(2001, 2010)] == [None] * 9
     assert rolling[2010] == pytest.approx(8.0) and rolling[2011] == pytest.approx(9.0)
@@ -177,19 +178,47 @@ def test_increasing_trend_uses_actual_year_numbers_and_rolling_gaps():
 
 @pytest.mark.parametrize("counts,direction", [
     ({year: 2011 - year for year in range(2001, 2011)}, "decreasing"),
-    ({year: 2 for year in range(2001, 2011)}, "flat"),
+    ({year: 2 for year in range(2001, 2011)}, "no_significant_trend"),
 ])
-def test_decreasing_and_exactly_flat_trends(counts, direction):
+def test_decreasing_and_constant_trends(counts, direction):
     result = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(counts)))
     assert result.trend_direction == direction
-    if direction == "flat":
+    if direction == "no_significant_trend":
         assert result.frequency_slope_per_year == 0.0
+        assert result.mann_kendall.p_value == 1
+
+
+def test_a_small_positive_slope_without_a_significant_test_is_not_called_increasing():
+    counts = {year: 1 if year % 2 else 3 for year in range(2001, 2011)}
+    result = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(counts)))
+    assert result.frequency_slope_per_year > 0
+    assert result.trend_direction == "no_significant_trend"
+    assert not result.mann_kendall.significant
+
+
+def test_serial_correlation_warning_only_for_a_significant_autocorrelated_trend():
+    steps = [1, 1, 1, 1, 4, 4, 4, 4, 2, 2, 2, 2, 5, 5, 5, 5]
+    counts = {2001 + index: value for index, value in enumerate(steps)}
+    result = analyze_heatwaves(baseline(), analysis(2001, 2016, events_per_year(counts)))
+    assert result.trend_direction == "increasing"
+    warning = next(w for w in result.warnings if w.code == "SERIAL_CORRELATION")
+    assert "lag-1 r = 0.53" in warning.message
+
+    hump = {2001 + index: value for index, value in enumerate([0, 1, 2, 3, 4, 4, 3, 2, 1, 0])}
+    untrended = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(hump)))
+    assert untrended.trend_direction == "no_significant_trend"
+    assert "SERIAL_CORRELATION" not in {w.code for w in untrended.warnings}
+
+    monotonic = {year: year - 2000 for year in range(2001, 2011)}
+    clean = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(monotonic)))
+    assert "SERIAL_CORRELATION" not in {w.code for w in clean.warnings}
 
 
 def test_fewer_than_ten_eligible_years_has_no_trend():
     result = analyze_heatwaves(baseline(), analysis(2001, 2009, events_per_year({2003: 2})))
     assert result.trend_direction == "insufficient_data"
     assert result.frequency_slope_per_year is None
+    assert result.mann_kendall is None
     assert result.trend_year_count == 9
 
 
@@ -211,16 +240,28 @@ def test_anomaly_and_complete_status():
     assert result.status == "complete"
 
 
-def test_insights_are_evidence_based_and_never_claim_significance():
+def test_insights_report_the_trend_test_without_claiming_a_cause():
     counts = {year: year - 2000 for year in range(2001, 2011)}
     result = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(counts)))
     codes = [insight.code for insight in result.insights]
     assert codes[:2] == ["EVENT_TOTAL", "FREQUENCY_TREND"]
     total = result.insights[0]
     assert total.evidence[0].value == result.event_count == 55
-    for insight in result.insights:
-        assert insight.evidence
-        assert "significan" not in insight.text.lower()
+    assert all(insight.evidence for insight in result.insights)
+    trend = result.insights[1]
+    assert trend.text == (
+        "Annual heatwave counts show a statistically significant increasing trend across 10 "
+        "eligible years (2001–2010): Mann-Kendall p < 0.001, Sen's slope +1.000 events per year. "
+        "The test describes this record, not its cause."
+    )
+    assert [e.metric for e in trend.evidence] == ["mann_kendall_p_value", "sens_slope_per_year"]
+
+    flat = {year: 1 if year % 2 else 3 for year in range(2001, 2011)}
+    quiet = analyze_heatwaves(baseline(), analysis(2001, 2010, events_per_year(flat)))
+    assert quiet.insights[1].text.startswith(
+        "Annual heatwave counts show no statistically significant trend across 10 eligible years "
+        "(2001–2010): Mann-Kendall p = 0."
+    )
 
 
 def test_series_must_cover_exact_periods():

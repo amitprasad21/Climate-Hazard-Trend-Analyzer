@@ -213,6 +213,26 @@ Documents/files: [plan](implementation-plan.md), [contract](../../INTEGRATION_CO
 
 Blockers: None.
 
+## BE-013 Mann-Kendall trend test with Sen's slope
+
+Priority: P1. Status: DONE. Requirements: FR-005, FR-007. Dependencies: BE-002, BE-007.
+
+Scope/files: app/trend.py, app/climate.py, app/schemas.py, app/services/analysis.py, tests, docs/climate-methodology.md, root contract (0.3).
+
+Acceptance: a two-sided Mann-Kendall test with tie correction and Sen's slope on eligible annual counts (at least 10 years, α = 0.05) decides the trend direction; the response reports S, τ, Z, p and Sen's slope; a serial-correlation warning appears when lag-1 autocorrelation could overstate significance; contract 0.3 and method heatwave-v2 change the cache key; insights state the result without causal claims.
+
+Evidence: 2026-10-15, commits 933dddf and 4d040c7. `app/trend.py` (standard library only) implements S, the tie-corrected variance, Z with continuity correction, the two-sided p, τ, Sen's slope over actual years, lag-1 autocorrelation and Anderson's bound; `app/climate.py` sets the direction from significance and adds `SERIAL_CORRELATION` only for a significant, positively autocorrelated result. Tests: tests/test_trend.py (8) with hand-computed values (monotonic, decreasing, ties, constant, alternating, gapped years, even-count median, autocorrelation, a p-value between 5% and 10%); climate tests for a small positive OLS slope that is not significant, the warning and its absence for an untrended autocorrelated series, and exact insight wording; contract tests for 0.3 and heatwave-v2. Backend 283 passed, 8 MongoDB repository tests skipped; ruff clean; 12 of 12 backend mutants caught. Live (local API, NASA POWER): New Delhi 1995–2024 was computed fresh under the new cache key and gave no significant trend (S = −8, p = 0.898, Sen's slope 0) where v1 showed "decreasing" for an OLS slope of −0.004; over 1981–2024 Athens (p = 0.0002, Sen +0.053 events/yr) and Phoenix (p = 0.006, +0.056) were significant increases and Tokyo was not (p = 0.59); no serial-correlation warnings appeared.
+
+Description: Replace sign-only trend labels with a standard non-parametric trend test.
+
+Ownership: backend. Concepts: 7, 34, 61, 62, 76, 78.
+
+Required tests: CLIMATE-TREND with independent expected values, CONTRACT-OUTPUT.
+
+Documents/files: [plan](implementation-plan.md), [methodology](climate-methodology.md), [contract](../../INTEGRATION_CONTRACT.md), ADR-025.
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns roles and execution/approval gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns each approved tool installation and smoke test; root TASKS defines them once.

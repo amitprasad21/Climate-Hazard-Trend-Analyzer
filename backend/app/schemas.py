@@ -1,4 +1,4 @@
-"""Wire schemas for INTEGRATION_CONTRACT 0.2; validation is pure and performs no I/O."""
+"""Wire schemas for INTEGRATION_CONTRACT 0.3; validation is pure and performs no I/O."""
 
 import re
 import unicodedata
@@ -17,7 +17,7 @@ from pydantic import (
     model_validator,
 )
 
-CONTRACT_VERSION = "0.2"
+CONTRACT_VERSION = "0.3"
 EARLIEST_YEAR = 1940
 ProviderName = Literal["nasa_power", "open_meteo"]
 MAX_PERIOD_YEARS = 50
@@ -251,17 +251,30 @@ class Insight(OutputModel):
     evidence: list[Evidence]
 
 
+TrendDirection = Literal["increasing", "decreasing", "no_significant_trend", "insufficient_data"]
+
+
+class MannKendallSummary(OutputModel):
+    s: int
+    tau: float
+    z: float
+    p_value: float = Field(ge=0, le=1)
+    sens_slope_per_year: float
+    significant: bool
+
+
 class Summary(OutputModel):
     event_count: int
     mean_duration_days: Nullable
     threshold_c: float
-    trend_direction: Literal["increasing", "decreasing", "flat", "insufficient_data"]
+    trend_direction: TrendDirection
     frequency_slope_per_year: Nullable
+    mann_kendall: MannKendallSummary | None
     trend_year_count: int
 
 
 class Methodology(OutputModel):
-    version: Literal["heatwave-v1"] = "heatwave-v1"
+    version: Literal["heatwave-v2"] = "heatwave-v2"
     baseline_start: Literal["1991-01-01"] = "1991-01-01"
     baseline_end: Literal["2020-12-31"] = "2020-12-31"
     percentile: Literal[95] = 95
@@ -271,10 +284,9 @@ class Methodology(OutputModel):
     daily_timezone: Literal["UTC"] = "UTC"
     aggregation: Literal["point", "nine_point_cosine_weighted_mean"] = "point"
     anomaly_reference: Literal["baseline_mean_daily_maximum"] = "baseline_mean_daily_maximum"
-    trend_method: Literal["ordinary_least_squares_descriptive"] = (
-        "ordinary_least_squares_descriptive"
-    )
-    significance_tested: Literal[False] = False
+    trend_method: Literal["mann_kendall_sens_slope"] = "mann_kendall_sens_slope"
+    significance_tested: Literal[True] = True
+    significance_level: Literal[0.05] = 0.05
 
 
 class DataQuality(OutputModel):
@@ -291,7 +303,7 @@ class CacheInfo(OutputModel):
 
 
 class AnalysisResponse(OutputModel):
-    contract_version: Literal["0.2"]
+    contract_version: Literal["0.3"]
     request_id: str
     region: Annotated[PointRegion | BoxRegion, Field(discriminator="kind")]
     period: Period

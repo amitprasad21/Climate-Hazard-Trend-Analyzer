@@ -96,3 +96,7 @@ Result (2026-10-15): built with these changes from the plan. CARTO served only "
 ## Supported start year slice (FE-009 with BE-012), 2026-10-15
 
 The form's earliest start year comes from the backend's health response instead of a hard-coded 1940. The plan, edge cases and tests are in the [backend implementation plan](../../backend/docs/implementation-plan.md#supported-start-year-slice-be-012-fe-009-2026-10-15).
+
+## Mann-Kendall trend slice (FE-010 with BE-013), 2026-10-15
+
+The trend card and method text show the backend's Mann-Kendall result (contract 0.3) and still accept 0.2 responses during deployment. The plan, edge cases and tests are in the [backend implementation plan](../../backend/docs/implementation-plan.md#mann-kendall-trend-slice-be-013-fe-010-2026-10-15).

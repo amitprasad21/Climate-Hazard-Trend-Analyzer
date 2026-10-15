@@ -26,7 +26,7 @@ DOC-005 is DONE for the supplied monochrome design/UI-brief alignment. frontend/
 
 DOC-006 is DONE for the refreshed tool audit. DOC-007 is DONE for [the canonical AI workflow](docs/ai-development-workflow.md), rule/plan/testing checkpoints and concept traceability. Documentation checker/self-tests pass for all Markdown files, requirements, tasks, concepts and contrast pairs. DOC-008 remains conditional TODO: no tool installation is selected or approved.
 
-DOC-002, DOC-004, BE-001 through BE-012, FE-001 through FE-009, and REL-002 are DONE. Only REL-001 (Deployment and Release) remains TODO.
+DOC-002, DOC-004, BE-001 through BE-013, FE-001 through FE-010, and REL-002 are DONE. Only REL-001 (Deployment and Release) remains TODO.
 
 ## Gaps and next work
 
@@ -35,3 +35,5 @@ Backend BE-001 through BE-011, FE-001 through FE-005 and REL-002 are DONE. Bound
 Deployment target accounts/hosting, remote repository synchronization, and final production smoke test are the remaining release prerequisites.
 
 Current work (2026-10-14): review feedback on visualization and responsiveness. FE-006 (wake-up, saved results, honest loading) and FE-007 (heatwave calendar with linked year views) were merged to `main` and deployed on 2026-10-15 (CI passed). FE-008 (Leaflet result map and map picker on OpenStreetMap tiles) and the README rewrite were merged and pushed to `main` on 2026-10-15. The root README was rewritten with an architectural decisions and trade-offs section, live links and claims re-checked against the code: corrected endpoint, collections, body limit, fallback status, benchmark command and cold-latency figures. BE-012 and FE-009 close the start-year gap: the health response reports the earliest supported start year (1981 in production) and the form follows it; merged to `main` and verified in production on 2026-10-15.
+
+Mann-Kendall (2026-10-15): BE-013 and FE-010 replace the sign-only trend with a two-sided Mann-Kendall test and Sen's slope (contract 0.3, method heatwave-v2, ADR-025), DONE on branch `feature/mann-kendall`, not yet merged or deployed.

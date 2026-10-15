@@ -22,9 +22,9 @@ Out of scope: authentication, billing, alerts, forecasts, causal attribution, me
 | FR-002 | Assessment | Heatwave is selected by default; unsupported hazards cannot be submitted | FE-002, BE-001 | CONTRACT-INPUT |
 | FR-003 | Assessment / Decision | Select 1-50 full calendar years within provider-supported history; reject reversed/future ranges | BE-001, FE-002, BE-012, FE-009 | CONTRACT-INPUT |
 | FR-004 | Assessment | Analyze real historical daily maximum temperatures and return consistent JSON | BE-002, BE-003, BE-005, BE-007 | E2E-ANALYSIS |
-| FR-005 | User | Render backend event count, mean duration, trend direction and regional p95 threshold | FE-003 | UI-METRICS |
+| FR-005 | User | Render backend event count, mean duration, trend direction and regional p95 threshold | FE-003, BE-013, FE-010 | UI-METRICS |
 | FR-006 | Assessment / User | Show annual event frequency, event duration and maximum-temperature anomaly using backend data | FE-003, FE-007 | UI-CHARTS |
-| FR-007 | Assessment | Explain trends with numerical evidence, period and limitations; no causal or unsupported significance claims | BE-002, FE-003, FE-007 | CLIMATE-TREND |
+| FR-007 | Assessment | Explain trends with numerical evidence, period and limitations; no causal or unsupported significance claims | BE-002, FE-003, FE-007, BE-013, FE-010 | CLIMATE-TREND |
 | FR-008 | User | Display loading, idle, no-events, partial-data, error and populated states; stale responses cannot replace newer results | FE-002, FE-003, FE-006 | UI-LIFECYCLE |
 | FR-009 | User / Decision | Display selected location/sample points; disclose unavailable spatial intensity rather than inventing a heatmap | FE-003, BE-006, FE-008 | UI-GEOGRAPHY |
 | FR-010 | Assessment / Decision | Support a constrained bounding box after point workflow; disclose sampled-area approximation and limits | BE-006, FE-004, FE-008 | CLIMATE-SPATIAL |

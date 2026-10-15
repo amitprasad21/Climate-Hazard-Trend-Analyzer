@@ -117,8 +117,8 @@ The [coverage matrix](../../docs/system-design-coverage.md) supplies complete ID
 | 58 Spatial aggregation | Sampler/aggregator defines representative area series | Nine centers, cosine weights, shared cells, absent sample | Later bounded approximation, not exact area mean; BE-006, FE-004 |
 | 59 Missing data | Quality normalization prevents invented continuity | Null/invalid/conflicting dates break runs; all baseline years tested | No interpolation; BE-003, BE-002 |
 | 60 Boundaries | Detector discloses clipping and ineligible-year crossings | Censor flags, whole-run exclusion, final flush, zero/null cases | No inferred event extent beyond interval; BE-002 |
-| 61 Trend estimation | Trend function produces descriptive OLS on actual years | Known slopes, minimum ten eligible years, rolling-window gaps | Sparse/autocorrelated counts limit interpretation; BE-002 |
-| 62 Significance | Response explicitly states significance_tested=false | No p-values/significance language; negative assertions | Formal inference deferred pending valid scientific design; BE-002 |
+| 61 Trend estimation | Mann-Kendall direction with Sen's slope on actual years; OLS slope kept for reference | Hand-computed S, variance, p and Sen's slope; minimum ten eligible years; rolling-window gaps | Sparse/autocorrelated counts limit interpretation; BE-002, BE-013 |
+| 62 Significance | Two-sided Mann-Kendall at 5%, reported with p and `significance_tested: true` | Boundary p tests; serial-correlation warning only when significant | Independence assumed and warned about, not corrected; BE-013 |
 | 63 Reproducibility | Repository/domain retains inputs, source revision and method | Repeated fixed dataset identical; changed fingerprint invalidates | Upstream archive corrections can alter a fresh result; BE-002, BE-005 |
 | 64 Insights | Deterministic engine text refers to actual metrics/evidence | Numbers, periods and units agree; zero denominator protected | No causal narrative or AI inference; BE-002, FE-003 |
 

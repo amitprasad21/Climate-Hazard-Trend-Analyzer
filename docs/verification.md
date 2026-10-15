@@ -318,3 +318,12 @@ Branch `feature/supported-years`, not yet merged or deployed. Additive `earliest
 - **Mutation checks**: 10 of 10 caught (8 frontend, 2 backend).
 - **Browser** (Claude pane, Chromium, local API with `WEATHER_FALLBACK_ENABLED=false`): health reported 1981; the form showed 1981 in its hint, minimum and full-record preset; 1975 was refused locally with no request; 1981–1990 completed for New Delhi.
 - **Production** (after merging to `main`, CI passed): Render health reported `earliest_start_year` 1981; the live form showed 1981 in its hint and minimum and refused 1975 without a request.
+
+## Mann-Kendall trend test (BE-013, FE-010), 2026-10-15
+
+Branch `feature/mann-kendall`, not yet merged or deployed. Contract 0.3, method heatwave-v2 (ADR-025). Standard library only.
+
+- **Checks**: backend 283 passed, 8 skipped (MongoDB repository tests), ruff clean; frontend 111 passed, typecheck, lint and build (86.43 kB gzip initial JS); docs checker passes.
+- **Mutation checks**: 16 of 16 caught (12 backend statistics and direction rules, 4 frontend decoding and wording).
+- **Live** (local API, NASA POWER): New Delhi 1995–2024 recomputed under the new cache key: no significant trend (p = 0.898, Sen 0) where v1 said "decreasing"; 1981–2024 Athens p = 0.0002 (+0.053/yr) and Phoenix p = 0.006 (+0.056/yr) significant increases, Tokyo p = 0.59 not significant. Browser trend cards matched.
+- **Not verified**: the deployed site with this change.

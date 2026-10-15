@@ -22,6 +22,7 @@ from app.selector import (
 )
 from app.settings import WeatherSettings
 from app.spatial import aggregate_regional_days, cosine_weights, sample_centers
+from app.trend import MannKendall
 
 FETCHERS = {"nasa_power": fetch_nasa_power, "open_meteo": fetch_open_meteo}
 RESULT_TTL = timedelta(hours=24)
@@ -137,6 +138,19 @@ def _source_warnings(
     return warnings
 
 
+def _mann_kendall(test: MannKendall | None) -> dict | None:
+    if test is None:
+        return None
+    return {
+        "s": test.s,
+        "tau": round(test.tau, 6),
+        "z": round(test.z, 6),
+        "p_value": round(test.p_value, 6),
+        "sens_slope_per_year": round(test.sens_slope, 6),
+        "significant": test.significant,
+    }
+
+
 def build_payload(
     request: wire.AnalysisRequest,
     result: climate.HeatwaveResult,
@@ -203,6 +217,7 @@ def build_payload(
             "threshold_c": _round(result.threshold_c, 3),
             "trend_direction": result.trend_direction,
             "frequency_slope_per_year": _round(result.frequency_slope_per_year, 6),
+            "mann_kendall": _mann_kendall(result.mann_kendall),
             "trend_year_count": result.trend_year_count,
         },
         "annual": [

@@ -28,7 +28,7 @@ export function syntheticResult(overrides: Partial<AnalysisResponse> = {}): Anal
     coverage_fraction: 1,
   };
   return {
-    contract_version: "0.2",
+    contract_version: "0.3",
     request_id: "synthetic-request",
     region: { kind: "point", label: "Synthetic Place", latitude: 10.5, longitude: 20.25 },
     period: { start_year: 2001, end_year: 2003 },
@@ -39,6 +39,7 @@ export function syntheticResult(overrides: Partial<AnalysisResponse> = {}): Anal
       threshold_c: 38.123,
       trend_direction: "insufficient_data",
       frequency_slope_per_year: null,
+      mann_kendall: null,
       trend_year_count: 3,
     },
     annual,
@@ -61,7 +62,7 @@ export function syntheticResult(overrides: Partial<AnalysisResponse> = {}): Anal
     ],
     warnings: [{ code: "UTC_CALENDAR_DAYS", message: "Synthetic warning sentence.", years: [] }],
     methodology: {
-      version: "heatwave-v1",
+      version: "heatwave-v2",
       baseline_start: "1991-01-01",
       baseline_end: "2020-12-31",
       percentile: 95,
@@ -71,8 +72,9 @@ export function syntheticResult(overrides: Partial<AnalysisResponse> = {}): Anal
       daily_timezone: "UTC",
       aggregation: "point",
       anomaly_reference: "baseline_mean_daily_maximum",
-      trend_method: "ordinary_least_squares_descriptive",
-      significance_tested: false,
+      trend_method: "mann_kendall_sens_slope",
+      significance_tested: true,
+      significance_level: 0.05,
     },
     data_quality: {
       baseline: { ...coverage, expected_days: 10958, valid_days: 10958 },

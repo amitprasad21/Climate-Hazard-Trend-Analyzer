@@ -2,7 +2,7 @@
 
 Reviewed 2026-10-14. **Point-analysis backend implemented and verified end to end against live NASA POWER and a local MongoDB.** BE-001/002/003/004/005/007/008/010 are DONE; BE-009 is BLOCKED only on the live Atlas ping; BE-006 (boxes) and BE-011 (operations) are TODO.
 
-Present: settings, database lifecycle, schemas (contract 0.2), ingestion, providers (NASA POWER, Open-Meteo, geocoding), selector, climate engine, repositories, analysis and region services, security guards and routes. Local `.env` still points to the original Atlas credential file; local development can opt into a loopback MongoDB.
+Present: settings, database lifecycle, schemas (contract 0.3), ingestion, providers (NASA POWER, Open-Meteo, geocoding), selector, climate engine, repositories, analysis and region services, security guards and routes. Local `.env` still points to the original Atlas credential file; local development can opt into a loopback MongoDB.
 
 Actual checks: locked install succeeded; Ruff, compileall and offline lock-consistency passed on Python 3.14.2. Both public weather endpoints passed basic no-key 1990–2020 probes (11,323 days each); these were direct HTTP probes, not implemented adapter tests. Atlas ping failed with network_or_availability; closure completed. Restricted DNS probe stalled and was stopped. No successful live DB/health endpoint, storage read/write or cache integration is claimed.
 

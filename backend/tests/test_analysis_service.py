@@ -34,13 +34,19 @@ def test_nasa_analysis_persists_reads_back_and_reports_truthful_source():
     assert isinstance(result, AnalysisResponse)
     assert calls == [("nasa_power", date(1991, 1, 1), date(2020, 12, 31))]
     assert weather.saves == 1 and cache.puts == 1
-    assert result.contract_version == "0.2" and result.request_id == "req-1"
+    assert result.contract_version == "0.3" and result.request_id == "req-1"
     assert (result.source.provider, result.source.model) == ("nasa_power", "MERRA-2")
     assert result.source.sample_points[0].resolved is None
     codes = {w.code for w in result.warnings}
     assert {"RESOLVED_LOCATION_UNKNOWN", "GRID_CELL_REPRESENTATION"} <= codes
     assert result.summary.threshold_c == 20.0 and result.summary.event_count == 10
-    assert result.summary.trend_direction == "flat"
+    assert result.summary.trend_direction == "no_significant_trend"
+    test = result.summary.mann_kendall
+    assert (test.s, test.tau, test.z, test.p_value, test.sens_slope_per_year) == (0, 0, 0, 1, 0)
+    assert test.significant is False
+    method = result.methodology
+    assert (method.version, method.trend_method) == ("heatwave-v2", "mann_kendall_sens_slope")
+    assert (method.significance_tested, method.significance_level) == (True, 0.05)
     assert [e.start_date for e in result.events][:2] == [date(2001, 7, 1), date(2002, 7, 1)]
     assert result.cache.hit is False and result.cache.generated_at == NOW
     assert result.cache.expires_at == NOW + timedelta(hours=24)

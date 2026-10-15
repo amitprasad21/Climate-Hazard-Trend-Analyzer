@@ -1,6 +1,6 @@
 # Backend
 
-FastAPI point-analysis backend: strict contract 0.2 schemas, NASA POWER and Open-Meteo adapters with whole-source fallback, MongoDB persistence and caching, the heatwave-v1 engine, place search, request guards, and 3×3 bounding box regional sampling (BE-006). Read [instructions](AGENTS.md), [state](docs/state.md), [tasks](docs/tasks.md), [system design](docs/system.backend.md) and the [shared contract](../INTEGRATION_CONTRACT.md).
+FastAPI point-analysis backend: strict contract 0.3 schemas, NASA POWER and Open-Meteo adapters with whole-source fallback, MongoDB persistence and caching, the heatwave-v2 engine (Mann-Kendall trend test), place search, request guards, and 3×3 bounding box regional sampling (BE-006). Read [instructions](AGENTS.md), [state](docs/state.md), [tasks](docs/tasks.md), [system design](docs/system.backend.md) and the [shared contract](../INTEGRATION_CONTRACT.md).
 
 ## Environment and checks
 

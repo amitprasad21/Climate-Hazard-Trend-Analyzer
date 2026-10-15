@@ -147,6 +147,22 @@ Documents/files: [plan](../../backend/docs/implementation-plan.md), docs/state.m
 
 Blockers: None.
 
+## FE-010 Show the trend test result
+
+Priority: P1. Status: DONE. Requirements: FR-005, FR-007. Dependencies: FE-003, BE-013.
+
+Scope/files: src/api/types.ts, src/api/client.ts, src/components/ResultsView.tsx, tests/fixtures.ts and tests. Acceptance: contract 0.3 responses show the Mann-Kendall outcome, p-value and Sen's slope on the trend card and explain the test in the method text; 0.2 responses still render with the previous wording. Evidence: 2026-10-15, commit 4d040c7. The client accepts 0.2 and 0.3 and normalises a missing test result to null; the trend card shows "No clear trend" or the significant direction with "Mann-Kendall p …; Sen's slope …" and "(not significant at 5%)" when it applies; the method text explains the test and its independence assumption, and 0.2 results keep the old wording. Tests: tests/trendTest.test.tsx (4); suite 111 passed; typecheck, lint and build pass (86.43 kB gzip initial JS); 4 of 4 frontend mutants caught. Browser (Claude pane, Chromium, local API): New Delhi 1995–2024 showed "→ No clear trend, Mann-Kendall p = 0.898 (not significant at 5%); Sen's slope 0.000 events per year" (production, still on v1, showed "↘ Decreasing" for the same request); Athens 1981–2024 showed "↗ Increasing, Mann-Kendall p < 0.001; Sen's slope +0.053 events per year".
+
+Description: Present the backend's trend test honestly and compactly.
+
+Ownership: frontend. Concepts: 7, 11, 34, 78.
+
+Required tests: UI-METRICS and CONTRACT-OUTPUT (0.2 and 0.3 decoding, trend card, method text).
+
+Documents/files: [plan](../../backend/docs/implementation-plan.md), docs/state.md.
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns the six roles and stage gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns individual approved installation plus smoke testing; their definitions remain in root TASKS.

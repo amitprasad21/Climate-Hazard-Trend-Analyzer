@@ -1,4 +1,4 @@
-"""Pure heatwave-v1 calculations (docs/climate-methodology.md); no I/O, clock or provider logic."""
+"""Pure heatwave-v2 calculations (docs/climate-methodology.md); no I/O, clock or provider logic."""
 
 import math
 from collections import Counter, defaultdict
@@ -9,8 +9,9 @@ from fractions import Fraction
 from typing import Literal
 
 from app.ingestion import DailyValue
+from app.trend import MannKendall, lag1_autocorrelation, mann_kendall, serial_correlation_bound
 
-METHOD_VERSION = "heatwave-v1"
+METHOD_VERSION = "heatwave-v2"
 BASELINE_START = date(1991, 1, 1)
 BASELINE_END = date(2020, 12, 31)
 PERCENTILE = 0.95
@@ -19,7 +20,7 @@ YEAR_MIN_VALID = Fraction(9, 10)
 MONTH_MIN_VALID = Fraction(4, 5)
 MIN_TREND_YEARS = 10
 ROLLING_YEARS = 5
-TrendDirection = Literal["increasing", "decreasing", "flat", "insufficient_data"]
+TrendDirection = Literal["increasing", "decreasing", "no_significant_trend", "insufficient_data"]
 
 
 class InsufficientBaseline(Exception):
@@ -111,6 +112,7 @@ class HeatwaveResult:
     mean_duration_days: float | None
     trend_direction: TrendDirection
     frequency_slope_per_year: float | None
+    mann_kendall: MannKendall | None
     trend_year_count: int
     status: Literal["complete", "partial"]
     warnings: tuple[Notice, ...]
@@ -178,19 +180,33 @@ def _runs(series: Sequence[DailyValue], threshold: float) -> list[list[DailyValu
     return runs
 
 
-def _trend(rows: Sequence[AnnualRow]) -> tuple[TrendDirection, float | None]:
+@dataclass(frozen=True)
+class Trend:
+    direction: TrendDirection
+    ols_slope: float | None
+    test: MannKendall | None
+    serially_correlated_r: float | None
+
+
+def _trend(rows: Sequence[AnnualRow]) -> Trend:
     points = [(row.year, row.event_count) for row in rows if row.eligible]
     if len(points) < MIN_TREND_YEARS:
-        return "insufficient_data", None
+        return Trend("insufficient_data", None, None, None)
     n = len(points)
     sx = sum(x for x, _ in points)
     sy = sum(y for _, y in points)
-    # Integer least-squares terms keep the slope sign exact, so a true zero is "flat".
+    # Integer least-squares terms keep the descriptive slope exact.
     numerator = n * sum(x * y for x, y in points) - sx * sy
     denominator = n * sum(x * x for x, _ in points) - sx * sx
-    slope = Fraction(numerator, denominator)
-    direction = "increasing" if slope > 0 else "decreasing" if slope < 0 else "flat"
-    return direction, float(slope)
+    test = mann_kendall(points)
+    if not test.significant:
+        direction = "no_significant_trend"
+    else:
+        direction = "increasing" if test.s > 0 else "decreasing"
+    # Positive serial correlation inflates significance, so only a significant result is flagged.
+    r = lag1_autocorrelation([y - test.sens_slope * x for x, y in points])
+    flagged = test.significant and r is not None and r > serial_correlation_bound(n)
+    return Trend(direction, float(Fraction(numerator, denominator)), test, r if flagged else None)
 
 
 def _annual(
@@ -238,8 +254,7 @@ def _annual(
 def _insights(
     events: Sequence[Event],
     rows: Sequence[AnnualRow],
-    direction: TrendDirection,
-    slope: float | None,
+    trend: Trend,
     start_year: int,
     end_year: int,
 ) -> tuple[Insight, ...]:
@@ -254,24 +269,30 @@ def _insights(
             (Evidence("event_count", count, "events", eligible),),
         )
     ]
-    if slope is None:
+    test = trend.test
+    if test is None:
         text = (
             f"Only {len(eligible)} eligible years are available; at least "
-            f"{MIN_TREND_YEARS} are needed to describe a trend."
+            f"{MIN_TREND_YEARS} are needed to test for a trend."
         )
         evidence = (Evidence("trend_year_count", len(eligible), "years", eligible),)
     else:
-        change = (
-            "show no linear change"
-            if direction == "flat"
-            else (f"follow a fitted linear slope of {slope:+.3f} events per year")
+        outcome = (
+            f"a statistically significant {trend.direction} trend"
+            if test.significant
+            else "no statistically significant trend"
         )
+        p_text = "< 0.001" if test.p_value < 0.001 else f"= {test.p_value:.3f}"
+        cause = " The test describes this record, not its cause." if test.significant else ""
         text = (
-            f"Annual heatwave counts {change} across {len(eligible)} eligible years "
-            f"({eligible[0]}–{eligible[-1]}). This describes the fitted line only; "
-            "no statistical test was applied."
+            f"Annual heatwave counts show {outcome} across {len(eligible)} eligible years "
+            f"({eligible[0]}–{eligible[-1]}): Mann-Kendall p {p_text}, Sen's slope "
+            f"{test.sens_slope:+.3f} events per year.{cause}"
         )
-        evidence = (Evidence("frequency_slope_per_year", slope, "events/year per year", eligible),)
+        evidence = (
+            Evidence("mann_kendall_p_value", test.p_value, "probability", eligible),
+            Evidence("sens_slope_per_year", test.sens_slope, "events/year per year", eligible),
+        )
     insights.append(Insight("FREQUENCY_TREND", text, evidence))
     if events:
         longest = max(events, key=lambda event: event.duration_days)
@@ -356,7 +377,7 @@ def analyze_heatwaves(
         )
 
     rows = _annual(years, analysis_years, events, baseline_mean)
-    direction, slope = _trend(rows)
+    trend = _trend(rows)
     baseline_cover, analysis_cover = coverage(baseline), coverage(analysis)
     censored = tuple(sorted({e.start.year for e in events if e.boundary_censored}))
     ineligible = tuple(cover.year for cover in years if not cover.eligible)
@@ -403,6 +424,16 @@ def analyze_heatwaves(
                 tuple(sorted(excluded_years)),
             )
         )
+    if trend.serially_correlated_r is not None:
+        warnings.append(
+            Notice(
+                "SERIAL_CORRELATION",
+                f"Annual counts are positively autocorrelated (lag-1 r = "
+                f"{trend.serially_correlated_r:.2f}), so the Mann-Kendall test may overstate "
+                "significance.",
+                (),
+            )
+        )
     if censored:
         warnings.append(
             Notice(
@@ -427,10 +458,11 @@ def analyze_heatwaves(
         annual=rows,
         event_count=len(events),
         mean_duration_days=math.fsum(durations) / len(durations) if durations else None,
-        trend_direction=direction,
-        frequency_slope_per_year=slope,
+        trend_direction=trend.direction,
+        frequency_slope_per_year=trend.ols_slope,
+        mann_kendall=trend.test,
         trend_year_count=len(eligible_years),
         status="partial" if partial else "complete",
         warnings=tuple(warnings),
-        insights=_insights(events, rows, direction, slope, start.year, end.year),
+        insights=_insights(events, rows, trend, start.year, end.year),
     )
