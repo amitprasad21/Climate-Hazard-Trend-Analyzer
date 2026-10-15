@@ -297,8 +297,35 @@ Measured results (details and conditions in the [verification log](docs/verifica
 
 ---
 
-## 10. AI tooling and development disclosure
+## 10. What I would improve with more time
 
-In accordance with academic and engineering transparency standards:
-- **Pair Programming Assistance**: Google DeepMind's Antigravity agentic coding assistant and Claude Code were used for test suite design, documentation reconciliation, refactoring assistance, and type checking.
-- **Human Authorship & Authority**: All architectural decisions, scientific methodology formulas, safety controls, and commit scopes were specified, reviewed, and authorized per the project workflow outlined in [docs/ai-development-workflow.md](docs/ai-development-workflow.md).
+1. **Stronger trend detection.** Add the Mann-Kendall test with Sen's slope, and report a near-zero slope as "no clear change" instead of labelling it by its sign alone (New Delhi 1995–2024 fits −0.004 events per year, which the app currently shows as "decreasing").
+2. **Exportable insights.** Extend the CSV export, which covers events today, to include the summary, insights and method, and add a PDF report.
+3. **Seasonal thresholds and local days.** Offer a day-of-year percentile threshold to catch unseasonal heat, and compute daily maxima in local time instead of UTC days.
+4. **Larger regions.** Support states and other administrative areas by sampling a polygon, with a sample count that scales with area, instead of boxes limited to 2° × 2°.
+5. **More hazards.** Heavy rainfall and drought indicators reusing the same ingestion, storage and presentation pipeline.
+6. **Data coverage before 1981 in production.** License Open-Meteo for this use, or add another long-record source, so the ERA5 fallback can serve periods from 1940.
+7. **Background jobs for heavy requests.** Queue large or cold analyses and let the browser poll, rather than holding one request open for many provider calls.
+8. **Production hosting.** An always-on backend to remove the free-plan cold start, shared rate limiting (for example Redis) so the API can run several replicas, and a map tile provider with a usage agreement.
+9. **Automated browser tests.** Move the manual browser checks (linked charts, map picks, nine screen sizes) into Playwright tests that run in CI.
+
+---
+
+## 11. AI tooling and development disclosure
+
+**Tools used**
+- **Google DeepMind's Antigravity** (agentic coding assistant): test suite design, documentation reconciliation, refactoring assistance and type checking.
+- **Claude Code** (Anthropic's agentic coding tool, used from the Claude desktop app): planning and implementing features end to end, including the dashboard lifecycle, fast start, the heatwave calendar and linked charts, the Leaflet maps, the server-reported start year and this README.
+
+**How Claude Code was used**
+- **Planning first.** Each feature began as a written plan (design, edge cases, tests) in the task documents, and changes that affected architecture, dependencies or deployment waited for my explicit approval. Those decisions are recorded in [docs/decisions](docs/decisions/README.md): the NASA-first source, one MongoDB document per year for the Atlas free tier, separate frontend and backend domains, and Leaflet with OpenStreetMap tiles.
+- **Tests before code.** Tests were written first and run failing before the implementation. Critical rules were then checked by mutation testing: deliberately breaking the code and confirming the tests catch it.
+- **Checked in a real browser.** The assistant drove a browser against the local and the deployed app to confirm behaviour, layout at nine screen sizes, and bundle sizes. Results are in the [verification log](docs/verification.md).
+- **Small, reviewable commits** on feature branches. I decided every merge to `main` and every deployment, and configured the hosting (Render, Vercel, MongoDB Atlas) and its secrets myself.
+
+**Where AI output was wrong and how it was caught**
+- The assistant first said CARTO map tiles need no key. The browser check showed "API KEY REQUIRED" tiles, so the maps switched to OpenStreetMap with my approval.
+- An earlier README contained claims that did not match the code: the endpoint path, the collection names, a 100 kB body limit, automatic provider failover, and a cold-request time that was really for one year rather than thirty. Every claim was re-checked against the code and corrected.
+- Browser checks also caught interface bugs that the automated tests had missed, which were then fixed: the map not centring on a chosen city, an unreadable map credit, and a stale place name after a map click.
+
+The full workflow the assistants followed is in [docs/ai-development-workflow.md](docs/ai-development-workflow.md). I reviewed the results and can walk through and change any part of the code.
