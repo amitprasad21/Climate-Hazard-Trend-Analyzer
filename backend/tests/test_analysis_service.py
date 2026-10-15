@@ -7,7 +7,7 @@ from app.climate import InsufficientBaseline
 from app.database import DatabaseUnavailable
 from app.providers.transport import ProviderError
 from app.schemas import AnalysisRequest, AnalysisResponse, UnsupportedRequest
-from app.selector import SourcesFailed
+from app.selector import SourcesFailed, earliest_start_year
 from app.settings import WeatherSettings
 from tests.fakes import NOW, FakeCache, FakeWeather, service
 
@@ -93,6 +93,14 @@ def test_unsupported_requests_cause_no_io(req, code):
         analyze(svc, req)
     assert error.value.code == code
     assert calls == [] and weather.saves == 0 and cache.rows == {}
+
+
+def test_period_error_names_the_same_first_year_that_health_reports():
+    assert (earliest_start_year(WeatherSettings()), earliest_start_year(FALLBACK)) == (1981, 1940)
+    svc, _ = service()
+    with pytest.raises(UnsupportedRequest) as error:
+        analyze(svc, request(start=1980, end=1990))
+    assert error.value.details[0].message == "The enabled data source starts in 1981"
 
 
 def test_primary_failure_falls_back_to_whole_era5_dataset():

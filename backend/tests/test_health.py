@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.database import DatabaseUnavailable
 from app.main import create_app
+from app.settings import WeatherSettings
 from tests.fakes import no_services
 
 
@@ -36,11 +37,23 @@ def test_liveness_performs_no_database_io(db_settings):
     with client_for(db_settings, database) as client:
         response = client.get("/api/v1/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "api_version": "v1"}
+    assert response.json() == {"status": "ok", "api_version": "v1", "earliest_start_year": 1981}
     assert response.headers["Cache-Control"] == "no-store"
     assert response.headers["X-Request-ID"]
     assert database.pings == 0
     assert database.closes == 1
+
+
+def test_liveness_reports_the_earliest_year_of_the_enabled_sources(db_settings):
+    fallback = WeatherSettings(weather_fallback_enabled=True, open_meteo_noncommercial_use=True)
+    app = create_app(
+        db_settings,
+        lambda config: FakeDatabase(),
+        weather_settings=fallback,
+        services_factory=no_services,
+    )
+    with TestClient(app) as client:
+        assert client.get("/api/v1/health").json()["earliest_start_year"] == 1940
 
 
 def test_readiness_detects_outage_with_safe_envelope(db_settings):

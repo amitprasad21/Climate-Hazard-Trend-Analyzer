@@ -14,7 +14,12 @@ from app.database import DatabaseUnavailable
 from app.ingestion import NORMALIZATION_VERSION, DailySeries
 from app.providers.nasa_power import fetch_nasa_power
 from app.providers.open_meteo import fetch_open_meteo
-from app.selector import eligible_providers, required_intervals, select_source
+from app.selector import (
+    earliest_start_year,
+    eligible_providers,
+    required_intervals,
+    select_source,
+)
 from app.settings import WeatherSettings
 from app.spatial import aggregate_regional_days, cosine_weights, sample_centers
 
@@ -310,10 +315,9 @@ class AnalysisService:
         wire.ensure_supported(request, self.clock().date())
         providers = eligible_providers(self.settings, request.period.start_year)
         if not providers:
-            earliest = min(wire.SOURCE_PROFILES[p].first_year for p in self.settings.provider_order)
             detail = wire.ErrorDetail(
                 field="period.start_year",
-                message=f"The enabled data source starts in {earliest}",
+                message=f"The enabled data source starts in {earliest_start_year(self.settings)}",
             )
             raise wire.UnsupportedRequest(
                 "UNSUPPORTED_PERIOD", "Requested period is not supported", [detail]

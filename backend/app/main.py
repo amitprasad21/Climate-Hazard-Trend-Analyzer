@@ -39,7 +39,7 @@ from app.security import (
     RequestContextMiddleware,
     client_identity,
 )
-from app.selector import SourcesFailed
+from app.selector import SourcesFailed, earliest_start_year
 from app.services.analysis import PROVIDER_LABELS, AnalysisService
 from app.services.regions import RegionSearchService, SearchUnavailable
 from app.settings import (
@@ -132,6 +132,7 @@ def create_app(
         )
         database = database_factory(config)
         app.state.database = database
+        app.state.earliest_start_year = earliest_start_year(weather)
         try:
             await database.open()
             async with services_factory(database, weather) as services:
@@ -246,8 +247,8 @@ def create_app(
         return response
 
     @app.get("/api/v1/health", response_model=Health)
-    async def health():
-        return Health()
+    async def health(request: Request):
+        return Health(earliest_start_year=request.app.state.earliest_start_year)
 
     @app.get("/api/v1/health/ready", response_model=Readiness)
     async def ready(request: Request):

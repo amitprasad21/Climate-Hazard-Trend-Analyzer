@@ -347,9 +347,12 @@ class RegionSearch(OutputModel):
 class Health(BaseModel):
     status: Literal["ok"] = "ok"
     api_version: Literal["v1"] = "v1"
+    earliest_start_year: int
 
 
-class Readiness(Health):
+class Readiness(BaseModel):
+    status: Literal["ok"] = "ok"
+    api_version: Literal["v1"] = "v1"
     database: Literal["available"] = "available"
 
 

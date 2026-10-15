@@ -54,6 +54,10 @@ def eligible_providers(settings: WeatherSettings, start_year: int) -> tuple[Prov
     )
 
 
+def earliest_start_year(settings: WeatherSettings) -> int:
+    return min(SOURCE_PROFILES[provider].first_year for provider in settings.provider_order)
+
+
 def _usable(series: tuple[DailySeries, ...], minimum_percent: float) -> bool:
     days = [day for part in series for day in part.days]
     return sum(day.quality == "valid" for day in days) * 100 >= minimum_percent * len(days)

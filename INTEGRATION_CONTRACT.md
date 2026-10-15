@@ -8,13 +8,13 @@ JSON keys use snake_case. Temperatures/anomalies are degrees Celsius, durations 
 
 Input objects reject unknown fields and numeric strings. Finite latitude is -90..90 and longitude -180..180. Canonicalize coordinates to four decimal places before fetching/caching and echo the canonical coordinates; do not round distinct requests only in the cache. Labels are plain text, trimmed, 1-120 characters with control characters rejected. Region labels have no scientific meaning and are escaped by React.
 
-Period: integer `start_year` and `end_year`; 1940 <= start <= end (1940 is the outer bound; actual eligibility depends on enabled sources, see source provenance); at most 50 inclusive years; end <= last fully available calendar year, conservatively using current UTC date minus 7 days and requiring that year's December 31 to be in the past availability window. The UI may present this as two native number inputs. The server remains authoritative.
+Period: integer `start_year` and `end_year`; 1940 <= start <= end (1940 is the outer bound; actual eligibility depends on enabled sources, see source provenance, and the health response reports the deployment's earliest start year); at most 50 inclusive years; end <= last fully available calendar year, conservatively using current UTC date minus 7 days and requiring that year's December 31 to be in the past availability window. The UI may present this as two native number inputs. The server remains authoritative.
 
 ## Endpoints
 
 | Method / path | Request | Success | Failures / caching / limits |
 |---|---|---|---|
-| `GET /api/v1/health` | None | 200 Health | Liveness only; no DB/provider calls, no cache; deployment-level request limit |
+| `GET /api/v1/health` | None | 200 Health | Liveness only; no DB/provider calls, no cache; deployment-level request limit. `earliest_start_year` (additive in 0.2, 2026-10-15) is the first start year the enabled sources can serve |
 | `GET /api/v1/health/ready` | None | 200 `{status:"ok", api_version:"v1", database:"available"}` | Additive connectivity draft; DB ping, 503 STORAGE_UNAVAILABLE on outage; no-store; mocked API tests only |
 | `GET /api/v1/regions/search?q=...` | Trimmed q, 2-100 chars; fixed max 10 results | 200 RegionSearch | 422/429/502/503/504/500; empty result is 200; in-process 24h bounded cache; 30/min/client; 503 SEARCH_UNAVAILABLE when Open-Meteo use is not permitted (enter coordinates instead) |
 | `POST /api/v1/analyses/heatwaves` | AnalysisRequest | 200 AnalysisResponse | 422/429/502/503/504/500; server cache only, 5/min/client; no automatic browser retry |
@@ -55,7 +55,8 @@ Illustrative request only (coordinates are input, not climate findings):
 ## Response schemas
 
 ```typescript
-type Health = { status: "ok"; api_version: "v1" };
+// earliest_start_year is additive: clients treat a missing or invalid value as unknown and keep 1940.
+type Health = { status: "ok"; api_version: "v1"; earliest_start_year: number };
 type RegionResult = {
   id: number; name: string; admin1: string | null; country: string;
   country_code: string; latitude: number; longitude: number;
