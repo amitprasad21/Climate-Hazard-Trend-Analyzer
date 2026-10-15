@@ -147,6 +147,22 @@ Documents/files: [plan](../../backend/docs/implementation-plan.md), docs/state.m
 
 Blockers: None.
 
+## FE-010 Show the trend test result
+
+Priority: P1. Status: IN_PROGRESS. Requirements: FR-005, FR-007. Dependencies: FE-003, BE-013.
+
+Scope/files: src/api/types.ts, src/api/client.ts, src/components/ResultsView.tsx, tests/fixtures.ts and tests. Acceptance: contract 0.3 responses show the Mann-Kendall outcome, p-value and Sen's slope on the trend card and explain the test in the method text; 0.2 responses still render with the previous wording. Evidence: none yet.
+
+Description: Present the backend's trend test honestly and compactly.
+
+Ownership: frontend. Concepts: 7, 11, 34, 78.
+
+Required tests: UI-METRICS and CONTRACT-OUTPUT (0.2 and 0.3 decoding, trend card, method text).
+
+Documents/files: [plan](../../backend/docs/implementation-plan.md), docs/state.md.
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns the six roles and stage gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns individual approved installation plus smoke testing; their definitions remain in root TASKS.

@@ -213,6 +213,26 @@ Documents/files: [plan](implementation-plan.md), [contract](../../INTEGRATION_CO
 
 Blockers: None.
 
+## BE-013 Mann-Kendall trend test with Sen's slope
+
+Priority: P1. Status: IN_PROGRESS. Requirements: FR-005, FR-007. Dependencies: BE-002, BE-007.
+
+Scope/files: app/trend.py, app/climate.py, app/schemas.py, app/services/analysis.py, tests, docs/climate-methodology.md, root contract (0.3).
+
+Acceptance: a two-sided Mann-Kendall test with tie correction and Sen's slope on eligible annual counts (at least 10 years, α = 0.05) decides the trend direction; the response reports S, τ, Z, p and Sen's slope; a serial-correlation warning appears when lag-1 autocorrelation could overstate significance; contract 0.3 and method heatwave-v2 change the cache key; insights state the result without causal claims.
+
+Evidence: none yet.
+
+Description: Replace sign-only trend labels with a standard non-parametric trend test.
+
+Ownership: backend. Concepts: 7, 34, 61, 62, 76, 78.
+
+Required tests: CLIMATE-TREND with independent expected values, CONTRACT-OUTPUT.
+
+Documents/files: [plan](implementation-plan.md), [methodology](climate-methodology.md), [contract](../../INTEGRATION_CONTRACT.md), ADR-025.
+
+Blockers: None.
+
 ## Shared workflow checkpoints
 
 [The canonical workflow](../../docs/ai-development-workflow.md) owns roles and execution/approval gates. Shared DOC-006 audits tools/compatibility, DOC-007 integrates rules/traceability/checkpoints, and conditional DOC-008 owns each approved tool installation and smoke test; root TASKS defines them once.

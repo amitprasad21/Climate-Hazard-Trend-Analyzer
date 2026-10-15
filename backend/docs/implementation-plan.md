@@ -44,3 +44,23 @@ Edge cases: older backend without the field; health unreachable or still waking 
 Tests (written first): backend health reports 1981 by default and 1940 with the fallback enabled, readiness unchanged, the period error names the same year; frontend client parsing (present, missing, invalid), hook exposure, and page behaviour (hint, validation message, presets, no request sent for an early year).
 
 Verification: backend pytest and ruff, frontend tests/typecheck/lint/build, docs checker, and a browser run against a local API with the fallback off. Rollback: revert the branch; the field is additive.
+
+## Mann-Kendall trend slice (BE-013, FE-010), 2026-10-15
+
+Approval: the user asked to "add Mann-Kendall trend detection" (2026-10-15), the case study's named trend technique and the README's first planned improvement. Branch `feature/mann-kendall`; merging to `main` deploys and is confirmed separately. Recorded as ADR-025, which supersedes ADR-010's no-significance rule.
+
+| Part | Design | Files |
+|---|---|---|
+| Test | Classical two-sided Mann-Kendall on eligible annual event counts in year order: S = Σ sign(yⱼ − yᵢ) for i < j; variance with the tie correction [n(n−1)(2n+5) − Σ t(t−1)(2t+5)] / 18; Z with continuity correction (S ∓ 1)/√Var, 0 when S = 0 or the variance is 0; p = erfc(|Z|/√2); Kendall's τ = S / (n(n−1)/2). Significant when p < 0.05. Still at least 10 eligible years. No new dependency. | `app/trend.py` |
+| Slope | Sen's slope: the median of (yⱼ − yᵢ)/(xⱼ − xᵢ) over all pairs, using actual years so excluded years are gaps. The OLS slope stays as `frequency_slope_per_year` for reference. | `app/trend.py` |
+| Serial correlation | The test assumes independent years. Lag-1 autocorrelation of the Sen-detrended counts (eligible years in order); when it is positive and above Anderson's 95% bound (−1 + 1.96√(n−2))/(n−1), add a `SERIAL_CORRELATION` warning that significance may be overstated. A Hamed-Rao variance correction is left for later. | `app/trend.py`, `app/climate.py` |
+| Direction | `increasing` / `decreasing` only when significant (sign of S); otherwise `no_significant_trend`; `insufficient_data` below 10 years. `flat` is retired. | `app/climate.py` |
+| Contract 0.3, method heatwave-v2 | `summary.mann_kendall` = {s, tau, z, p_value, sens_slope_per_year, significant} or null; methodology `trend_method: "mann_kendall_sens_slope"`, `significance_tested: true`, `significance_level: 0.05`. The version bump changes the cache key, so old cached results are never served with the new shape. | `app/schemas.py`, `app/services/analysis.py`, root contract |
+| Insight | States the test result, p-value, eligible years and Sen's slope, and says a trend test describes this record only, not its cause. | `app/climate.py` |
+| Frontend | Accepts 0.2 and 0.3 (Vercel and Render deploy separately; a 0.2 response has no test result and keeps the old wording). The trend card shows the test outcome with p and Sen's slope; the method text explains the test and its assumption. | `frontend/src/api/*`, `components/ResultsView.tsx` |
+
+Edge cases: all counts equal (variance 0: p = 1, slope 0), heavy ties, excluded years inside the series, exactly 10 years, p below 0.001, strictly monotonic series, a significant decrease, serial correlation with no trend.
+
+Tests (written first): independent hand-computed S, variance, Z, p, τ and Sen's slope for monotonic, tied, constant and gapped series; the serial-correlation bound; direction and insight wording from `analyze_heatwaves`; contract 0.3 and method fields; frontend decoding of 0.2 and 0.3 and the trend card and method text.
+
+Verification: backend pytest and ruff, frontend tests/typecheck/lint/build, docs checker, mutation checks on the statistics, and a live run (local API) comparing New Delhi before and after. Rollback: revert the branch; the cache key changes with the method version, so no data migration.
