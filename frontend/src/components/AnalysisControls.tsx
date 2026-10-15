@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
+import { useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import type { RegionResult } from "../api/types";
 import { EARLIEST_YEAR, MAX_YEARS, type Draft, type DraftField, type FieldErrors } from "../form";
 import type { SearchState } from "../hooks/useRegionSearch";
@@ -16,6 +16,7 @@ type Props = {
   onSelectPlace: (place: RegionResult) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  map?: ReactNode;
 };
 
 export function placeLabel(place: RegionResult): string {
@@ -231,6 +232,7 @@ export function AnalysisControls(props: Props) {
               </span>
             </>
           )}
+          {props.map}
         </fieldset>
 
         <fieldset>

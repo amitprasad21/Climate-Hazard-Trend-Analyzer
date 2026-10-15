@@ -987,3 +987,128 @@ input[aria-invalid="true"] {
   font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
+
+.leaflet-map {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 240px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.leaflet-map.leaflet-container {
+  font-family: var(--font-ui);
+  background: var(--color-surface-2);
+}
+
+.leaflet-map:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* OpenStreetMap tiles are colored; inverting a grayscale copy gives the dark monochrome basemap. */
+.leaflet-map .leaflet-tile-pane {
+  filter: grayscale(1) invert(1) brightness(0.85) contrast(0.9);
+}
+
+.leaflet-map .leaflet-bar {
+  border: 1px solid var(--color-control-border);
+}
+
+.leaflet-map .leaflet-bar a {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border);
+}
+
+.leaflet-map .leaflet-bar a:hover,
+.leaflet-map .leaflet-bar a:focus-visible {
+  background: var(--color-surface-hover);
+}
+
+.leaflet-map .leaflet-bar a.leaflet-disabled {
+  background: var(--color-surface-1);
+  color: var(--color-text-secondary);
+}
+
+/* Leaflet's own stylesheet loads later with an equal-specificity light background. */
+.leaflet-map.leaflet-container .leaflet-control-attribution {
+  background: var(--color-overlay);
+  color: var(--color-text-supporting);
+}
+
+.leaflet-map .leaflet-control-attribution a {
+  color: var(--color-text-primary);
+}
+
+.map-requested {
+  stroke: var(--color-bg);
+  stroke-width: 1.5;
+  fill: var(--color-chart-primary);
+  fill-opacity: 1;
+}
+
+.map-resolved,
+.map-anchor {
+  stroke: var(--color-chart-primary);
+  stroke-width: 2;
+  fill: var(--color-bg);
+  fill-opacity: 0.4;
+}
+
+.map-cell,
+.map-box {
+  stroke: var(--color-chart-primary);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  fill: var(--color-chart-primary);
+  fill-opacity: 0.06;
+}
+
+.map-cell {
+  stroke: var(--color-chart-secondary);
+  stroke-dasharray: 3 3;
+}
+
+.map-block,
+.map-picker {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.map-picker {
+  margin-top: var(--space-2);
+}
+
+.map-picker-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.map-swatch {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.swatch-requested {
+  border-radius: 50%;
+  background: var(--color-chart-primary);
+}
+
+.swatch-resolved {
+  border-radius: 50%;
+  border: 2px solid var(--color-chart-primary);
+}
+
+.swatch-box {
+  border: 1.5px dashed var(--color-chart-primary);
+}

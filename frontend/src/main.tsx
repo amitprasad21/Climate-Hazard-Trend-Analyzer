@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { checkHealth } from "./api/client";
 import { DashboardPage } from "./DashboardPage";
+import { lazyMaps } from "./map/lazy";
 import "./styles/tokens.css";
 import "./styles/global.css";
 
@@ -10,6 +11,6 @@ if (!root) throw new Error("Missing #root element");
 
 createRoot(root).render(
   <StrictMode>
-    <DashboardPage checkServer={checkHealth} />
+    <DashboardPage checkServer={checkHealth} maps={lazyMaps} />
   </StrictMode>,
 );

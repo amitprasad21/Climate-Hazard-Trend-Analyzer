@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import type { RegionResult } from "./api/types";
 import { AnalysisControls, placeLabel } from "./components/AnalysisControls";
 import { ErrorPanel } from "./components/ErrorPanel";
@@ -14,6 +14,8 @@ import {
   type FieldErrors,
 } from "./form";
 import { useAnalysis, type AnalysisState } from "./hooks/useAnalysis";
+import { cornersToBox, draftShapes, mapBoxLabel, mapPointLabel, pickedPoint, type LatLon } from "./map/geometry";
+import type { MapComponents } from "./map/types";
 import { useRegionSearch } from "./hooks/useRegionSearch";
 import { serverStatusMessage, useServerStatus, type HealthCheck } from "./hooks/useServerStatus";
 
@@ -35,10 +37,11 @@ function statusMessage(state: AnalysisState, dirty: boolean): string {
   }
 }
 
-export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {}) {
+export function DashboardPage({ checkServer, maps }: { checkServer?: HealthCheck; maps?: MapComponents } = {}) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [dirty, setDirty] = useState(false);
+  const [labelTyped, setLabelTyped] = useState(false);
   const analysis = useAnalysis();
   const search = useRegionSearch();
   const server = useServerStatus(checkServer);
@@ -74,12 +77,28 @@ export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {
   }
 
   function selectPlace(place: RegionResult) {
+    setLabelTyped(false);
     update({
       label: placeLabel(place),
       latitude: String(place.latitude),
       longitude: String(place.longitude),
     });
   }
+
+  // A map pick keeps a label the user typed; names from search, city buttons or earlier picks no longer fit.
+  const keepLabel = labelTyped && draft.label.trim() !== "";
+
+  function pickPoint(latitude: number, longitude: number) {
+    const point = pickedPoint(latitude, longitude);
+    update({ ...point, ...(!keepLabel && { label: mapPointLabel(point.latitude, point.longitude) }) });
+  }
+
+  function pickBox(first: LatLon, second: LatLon) {
+    const box = cornersToBox(first, second);
+    update({ ...box, ...(!keepLabel && { label: mapBoxLabel(box) }) });
+  }
+
+  const drafted = useMemo(() => draftShapes(draft), [draft]);
 
   function submit() {
     const { errors: found, request } = validate(draft, new Date());
@@ -123,12 +142,31 @@ export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {
             pending={state.phase === "loading"}
             search={search.state}
             fieldRefs={fieldRefs}
-            onChange={(field, value) => update({ [field]: value })}
-            onUpdate={update}
+            onChange={(field, value) => {
+              if (field === "label") setLabelTyped(true);
+              update({ [field]: value });
+            }}
+            onUpdate={(changes) => {
+              if ("label" in changes) setLabelTyped(false);
+              update(changes);
+            }}
             onSearch={(query) => void search.run(query)}
             onSelectPlace={selectPlace}
             onSubmit={submit}
             onCancel={analysis.cancel}
+            map={
+              maps && (
+                <Suspense fallback={<div className="leaflet-map map-loading" aria-hidden="true" />}>
+                  <maps.MapPicker
+                    mode={draft.regionKind}
+                    point={drafted.point}
+                    box={drafted.box}
+                    onPickPoint={pickPoint}
+                    onPickBox={pickBox}
+                  />
+                </Suspense>
+              )
+            }
           />
           <p className="form-notice" role="status">
             {statusMessage(state, dirty)}
@@ -138,7 +176,7 @@ export function DashboardPage({ checkServer }: { checkServer?: HealthCheck } = {
         <section className="panel" aria-labelledby="results-heading" aria-busy={state.phase === "loading"}>
           <h2 id="results-heading">Results</h2>
           {state.phase === "success" && (
-            <ResultsView result={state.result} savedInBrowser={state.savedInBrowser} />
+            <ResultsView result={state.result} savedInBrowser={state.savedInBrowser} ResultMap={maps?.ResultMap} />
           )}
           {state.phase === "error" && <ErrorPanel error={state.error} onRetry={retry} />}
           {state.phase === "loading" && <LoadingView request={state.request} serverStatus={server.status} />}

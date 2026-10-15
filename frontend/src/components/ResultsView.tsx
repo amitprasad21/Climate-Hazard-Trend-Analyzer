@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useId, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import type { AnalysisResponse, HeatwaveEvent, TrendDirection } from "../api/types";
 import { dayOfYear, eventsTouching, exclusionText } from "../calendar";
 import {
@@ -10,6 +10,8 @@ import {
   formatSigned,
   formatTimestamp,
 } from "../format";
+import { resultShapes } from "../map/geometry";
+import type { ResultMapProps } from "../map/types";
 import { HeatwaveCalendar } from "./HeatwaveCalendar";
 import { LineChart, type Series } from "./LineChart";
 
@@ -237,13 +239,45 @@ function YearPanel({
   );
 }
 
-function RegionContext({ result }: { result: AnalysisResponse }) {
+function RegionMap({ result, ResultMap }: { result: AnalysisResponse; ResultMap: ComponentType<ResultMapProps> }) {
+  const shapes = useMemo(() => resultShapes(result), [result]);
+  const isBox = shapes.box !== null;
+  return (
+    <div className="map-block">
+      <Suspense fallback={<div className="leaflet-map map-loading" aria-hidden="true" />}>
+        <ResultMap shapes={shapes} label={result.region.label} />
+      </Suspense>
+      <ul className="legend map-legend">
+        {isBox && (
+          <li>
+            <span className="map-swatch swatch-box" aria-hidden="true" />
+            Requested box
+          </li>
+        )}
+        <li>
+          <span className="map-swatch swatch-requested" aria-hidden="true" />
+          {isBox ? "Sample points (3×3 grid)" : "Requested point"}
+        </li>
+        {shapes.resolved.length > 0 && (
+          <li>
+            <span className="map-swatch swatch-resolved" aria-hidden="true" />
+            {isBox ? "Grid points reported by the provider" : "Grid point reported by the provider, with its cell"}
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function RegionContext({ result, ResultMap }: { result: AnalysisResponse; ResultMap?: ComponentType<ResultMapProps> }) {
   const { source, region } = result;
+  const map = ResultMap && <RegionMap result={result} ResultMap={ResultMap} />;
 
   if (region.kind === "bbox") {
     return (
       <section className="subpanel" aria-labelledby="region-heading">
         <h3 id="region-heading">Region and data source</h3>
+        {map}
         <dl className="facts">
           <dt>Bounding box</dt>
           <dd>
@@ -272,6 +306,7 @@ function RegionContext({ result }: { result: AnalysisResponse }) {
   return (
     <section className="subpanel" aria-labelledby="region-heading">
       <h3 id="region-heading">Location and data source</h3>
+      {map}
       <dl className="facts">
         <dt>Requested point</dt>
         <dd>
@@ -450,9 +485,11 @@ function Method({ result, savedInBrowser }: { result: AnalysisResponse; savedInB
 export function ResultsView({
   result,
   savedInBrowser = false,
+  ResultMap,
 }: {
   result: AnalysisResponse;
   savedInBrowser?: boolean;
+  ResultMap?: ComponentType<ResultMapProps>;
 }) {
   const [activeYear, setActiveYear] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -494,7 +531,7 @@ export function ResultsView({
       </div>
       <Charts result={result} link={link} />
       <div className="details-grid">
-        <RegionContext result={result} />
+        <RegionContext result={result} ResultMap={ResultMap} />
         <Quality result={result} />
       </div>
       <Findings result={result} />
