@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import type { ServerInfo } from "../api/client";
 
-export type HealthCheck = (signal: AbortSignal) => Promise<void>;
+export type HealthCheck = (signal: AbortSignal) => Promise<ServerInfo | void>;
 export type ServerStatus = "idle" | "checking" | "waking" | "ready" | "unreachable";
 
 export const SLOW_WAKE_MS = 1500;
@@ -8,6 +9,7 @@ export const SLOW_WAKE_MS = 1500;
 export function useServerStatus(check?: HealthCheck) {
   const [status, setStatus] = useState<ServerStatus>(check ? "checking" : "idle");
   const [wasSlow, setWasSlow] = useState(false);
+  const [earliestStartYear, setEarliestStartYear] = useState<number | null>(null);
 
   useEffect(() => {
     if (!check) return;
@@ -20,8 +22,9 @@ export function useServerStatus(check?: HealthCheck) {
       }
     }, SLOW_WAKE_MS);
     check(controller.signal).then(
-      () => {
+      (info) => {
         settled = true;
+        setEarliestStartYear(info?.earliestStartYear ?? null);
         setStatus("ready");
       },
       () => {
@@ -35,7 +38,7 @@ export function useServerStatus(check?: HealthCheck) {
     };
   }, [check]);
 
-  return { status, wasSlow };
+  return { status, wasSlow, earliestStartYear };
 }
 
 export function serverStatusMessage(status: ServerStatus, wasSlow: boolean): string {

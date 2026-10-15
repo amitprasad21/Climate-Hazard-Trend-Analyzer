@@ -8,6 +8,7 @@ import {
   EMPTY_DRAFT,
   FIELD_ORDER,
   latestCompleteYear,
+  startYearFloor,
   validate,
   type Draft,
   type DraftField,
@@ -46,6 +47,7 @@ export function DashboardPage({ checkServer, maps }: { checkServer?: HealthCheck
   const search = useRegionSearch();
   const server = useServerStatus(checkServer);
   const latestYear = latestCompleteYear(new Date());
+  const earliestYear = startYearFloor(server.earliestStartYear, latestYear);
   const fieldRefs = {
     regionKind: useRef<HTMLInputElement>(null),
     label: useRef<HTMLInputElement>(null),
@@ -101,7 +103,7 @@ export function DashboardPage({ checkServer, maps }: { checkServer?: HealthCheck
   const drafted = useMemo(() => draftShapes(draft), [draft]);
 
   function submit() {
-    const { errors: found, request } = validate(draft, new Date());
+    const { errors: found, request } = validate(draft, new Date(), earliestYear);
     setErrors(found);
     if (!request) {
       const first = FIELD_ORDER.find((field) => found[field]);
@@ -139,6 +141,7 @@ export function DashboardPage({ checkServer, maps }: { checkServer?: HealthCheck
             draft={draft}
             errors={errors}
             latestYear={latestYear}
+            earliestYear={earliestYear}
             pending={state.phase === "loading"}
             search={search.state}
             fieldRefs={fieldRefs}

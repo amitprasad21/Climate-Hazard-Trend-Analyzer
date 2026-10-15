@@ -158,15 +158,20 @@ export function searchRegions(query: string, signal: AbortSignal) {
   ).then((body) => body.results);
 }
 
-function isHealth(value: unknown): value is { status: "ok" } {
+export type ServerInfo = { earliestStartYear: number | null };
+
+function isHealth(value: unknown): value is { status: "ok"; earliest_start_year?: unknown } {
   return isRecord(value) && value.status === "ok";
 }
 
-export function checkHealth(signal: AbortSignal): Promise<void> {
+// The year is additive in contract 0.2, so an older backend without it is not an error.
+export function checkHealth(signal: AbortSignal): Promise<ServerInfo> {
   return request(
     "/api/v1/health",
     { method: "GET", headers: { Accept: "application/json" }, signal },
     HEALTH_TIMEOUT_MS,
     isHealth,
-  ).then(() => undefined);
+  ).then((health) => ({
+    earliestStartYear: Number.isInteger(health.earliest_start_year) ? (health.earliest_start_year as number) : null,
+  }));
 }

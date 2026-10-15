@@ -54,6 +54,11 @@ export function latestCompleteYear(now: Date): number {
   return available.getUTCMonth() === 11 && available.getUTCDate() === 31 ? year : year - 1;
 }
 
+// The server reports which start years its enabled sources can serve; anything else keeps the outer bound.
+export function startYearFloor(reported: number | null, latest: number): number {
+  return reported !== null && reported >= EARLIEST_YEAR && reported <= latest ? reported : EARLIEST_YEAR;
+}
+
 const CONTROL_CHARACTERS = /\p{Cc}/u;
 
 function coordinate(value: string, limit: number, name: string): [number | null, string | null] {
@@ -75,6 +80,7 @@ function year(value: string, name: string): [number | null, string | null] {
 export function validate(
   draft: Draft,
   now: Date,
+  earliest = EARLIEST_YEAR,
 ): { errors: FieldErrors; request: AnalysisRequest | null } {
   const errors: FieldErrors = {};
   const label = draft.label.trim();
@@ -138,7 +144,9 @@ export function validate(
   const [start, startError] = year(draft.startYear, "start year");
   const [end, endError] = year(draft.endYear, "end year");
   if (startError) errors.startYear = startError;
-  else if (start !== null && start < EARLIEST_YEAR) errors.startYear = `Start in ${EARLIEST_YEAR} or later.`;
+  else if (start !== null && start < earliest) {
+    errors.startYear = `Start in ${earliest} or later, when the data available here begins.`;
+  }
   if (endError) errors.endYear = endError;
   else if (end !== null && end > latest) errors.endYear = `The latest complete year is ${latest}.`;
   if (start !== null && end !== null && !errors.startYear && !errors.endYear) {

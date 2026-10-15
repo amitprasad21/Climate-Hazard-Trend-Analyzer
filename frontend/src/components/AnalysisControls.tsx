@@ -1,12 +1,13 @@
 import { useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import type { RegionResult } from "../api/types";
-import { EARLIEST_YEAR, MAX_YEARS, type Draft, type DraftField, type FieldErrors } from "../form";
+import { MAX_YEARS, type Draft, type DraftField, type FieldErrors } from "../form";
 import type { SearchState } from "../hooks/useRegionSearch";
 
 type Props = {
   draft: Draft;
   errors: FieldErrors;
   latestYear: number;
+  earliestYear: number;
   pending: boolean;
   search: SearchState;
   fieldRefs: Record<DraftField, RefObject<HTMLInputElement | null>>;
@@ -78,15 +79,15 @@ function SearchResults({ search, onSelect }: { search: SearchState; onSelect: (p
 }
 
 export function AnalysisControls(props: Props) {
-  const { draft, errors, latestYear, pending, search, fieldRefs, onChange, onUpdate, onSearch, onSelectPlace } = props;
+  const { draft, errors, latestYear, earliestYear, pending, search, fieldRefs, onChange, onUpdate, onSearch, onSelectPlace } = props;
   const [query, setQuery] = useState("");
 
   const yearPresets = [
-    { label: "Last 10y", start: Math.max(EARLIEST_YEAR, latestYear - 9), end: latestYear },
-    { label: "Last 20y", start: Math.max(EARLIEST_YEAR, latestYear - 19), end: latestYear },
-    { label: "Last 30y", start: Math.max(EARLIEST_YEAR, latestYear - 29), end: latestYear },
+    { label: "Last 10y", start: Math.max(earliestYear, latestYear - 9), end: latestYear },
+    { label: "Last 20y", start: Math.max(earliestYear, latestYear - 19), end: latestYear },
+    { label: "Last 30y", start: Math.max(earliestYear, latestYear - 29), end: latestYear },
     { label: "Baseline (1991–2020)", start: 1991, end: 2020 },
-    { label: "Full record", start: Math.max(EARLIEST_YEAR, latestYear - MAX_YEARS + 1), end: latestYear },
+    { label: "Full record", start: Math.max(earliestYear, latestYear - MAX_YEARS + 1), end: latestYear },
   ];
 
   function runSearch() {
@@ -244,8 +245,8 @@ export function AnalysisControls(props: Props) {
             </select>
           </div>
           <div className="field-row">
-            {text("startYear", "start_year", "Start year", { type: "number", inputMode: "numeric", min: EARLIEST_YEAR, max: latestYear, step: 1 })}
-            {text("endYear", "end_year", "End year", { type: "number", inputMode: "numeric", min: EARLIEST_YEAR, max: latestYear, step: 1 })}
+            {text("startYear", "start_year", "Start year", { type: "number", inputMode: "numeric", min: earliestYear, max: latestYear, step: 1 })}
+            {text("endYear", "end_year", "End year", { type: "number", inputMode: "numeric", min: earliestYear, max: latestYear, step: 1 })}
           </div>
           <div className="preset-group" role="group" aria-label="Quick year presets">
             {yearPresets.map((preset) => {
@@ -271,7 +272,7 @@ export function AnalysisControls(props: Props) {
             })}
           </div>
           <span id="period-hint" className="hint">
-            Full calendar years from {EARLIEST_YEAR} to {latestYear}, up to {MAX_YEARS} years.
+            Full calendar years from {earliestYear} to {latestYear}, up to {MAX_YEARS} years.
           </span>
         </fieldset>
       </div>
