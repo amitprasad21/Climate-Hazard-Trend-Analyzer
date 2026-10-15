@@ -13,7 +13,7 @@ Accepted means chosen for this specification, not implemented/tested. Provisiona
 | ADR-007 | ACCEPTED assumption | Missing dates break runs; baseline/analysis coverage gates apply. No interpolation; honest exclusions may reduce apparent event frequency. |
 | ADR-008 | ACCEPTED staged scope | Point/city first, then bounded 3x3 cell-center box sampling with cosine weights. No unsupported statewide polygon claim or intensity heatmap. |
 | ADR-009 | ACCEPTED | Versioned cache-aside in MongoDB, expiry predicates, idempotent upserts, one-worker single-flight. Distributed coordination deferred until measured need. |
-| ADR-010 | ACCEPTED assumption | Descriptive OLS slope with at least 10 eligible annual counts plus trailing-five-year mean; no formal significance or causality. Avoid unnecessary statistics dependencies initially. |
+| ADR-010 | SUPERSEDED in part by ADR-025 (2026-10-15) | Descriptive OLS slope with at least 10 eligible annual counts plus trailing-five-year mean; no formal significance or causality. Avoid unnecessary statistics dependencies initially. |
 | ADR-011 | ACCEPTED | v1 synchronous REST, structured errors and method metadata, no public analysis ID/jobs. Bounded 90s request deadline requires cold-path measurement. |
 | ADR-012 | ACCEPTED | Deterministic unit tests + contract/adapter/real-DB integration + browser workflow evidence. Mocked tests do not prove live integration. |
 | ADR-013 | PROVISIONAL | Static frontend host, one API instance, managed MongoDB. Accounts, resource cost, quotas and actual deployment target remain undecided; no deployment claim. |

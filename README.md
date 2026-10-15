@@ -15,7 +15,7 @@ Pick a location (search, a city button, typed coordinates or a click on the map)
 1. fetches decades of daily maximum temperatures for that place from NASA POWER, stores them in MongoDB, and reads them back;
 2. sets a local heatwave threshold, the 95th percentile of 1991–2020 daily maxima at that place;
 3. finds every heatwave (three or more consecutive days strictly above the threshold);
-4. returns annual frequency, duration and temperature anomaly, a descriptive trend, every event, data-quality details and plain-language insights.
+4. returns annual frequency, duration and temperature anomaly, a Mann-Kendall trend test with Sen's slope, every event, data-quality details and plain-language insights.
 
 The browser shows this as summary metrics, a **heatwave calendar** (every event by year and day of year), three **linked line charts** (hovering or selecting a year highlights it everywhere and opens that year's details), a **result map** of what was analysed, the method and provenance, and a CSV export of the events.
 
@@ -105,11 +105,11 @@ Each decision below says what was chosen, why, what it costs, and what was rejec
 
 ### 3.7 A deliberately simple, documented heatwave method
 
-**Choice.** A fixed annual threshold, the 95th percentile (linear interpolation) of all 1991–2020 daily maxima at the location. A heatwave is three or more consecutive UTC days strictly above it, and missing days break runs. Trends are ordinary least squares on eligible annual counts, are reported as increasing, decreasing or flat, and need at least 10 eligible years. Years below 90 % valid days, or with a month below 80 %, are excluded and named (ADR-006, ADR-007, ADR-010).
+**Choice.** A fixed annual threshold, the 95th percentile (linear interpolation) of all 1991–2020 daily maxima at the location. A heatwave is three or more consecutive UTC days strictly above it, and missing days break runs. The trend is a two-sided Mann-Kendall test (tie-corrected, 5% level) on eligible annual counts with Sen's slope as its size, and needs at least 10 eligible years; a result is called increasing or decreasing only when significant. Years below 90 % valid days, or with a month below 80 %, are excluded and named (ADR-006, ADR-007, ADR-025).
 
 **Why.** Every step is easy to explain, reproduce and test, and results are comparable across periods.
 
-**Cost.** A fixed annual threshold finds summer extremes but not unseasonal warmth. Trends are descriptive only (`significance_tested: false`); a significance test would need autocorrelation modelling. Gaps reduce counted events rather than being filled in.
+**Cost.** A fixed annual threshold finds summer extremes but not unseasonal warmth. The Mann-Kendall test assumes independent years; positive serial correlation can overstate significance, so the result carries a warning when that may be happening, but the variance is not yet corrected for it. Gaps reduce counted events rather than being filled in.
 
 ### 3.8 Areas as nine weighted sample points, never a heatmap
 
@@ -178,7 +178,7 @@ Each decision below says what was chosen, why, what it costs, and what was rejec
 - **Event**: three or more consecutive UTC days with Tmax strictly above the threshold. Equal is not above. Missing or invalid days break a run.
 - **Per event**: start and end dates, duration, mean and peak excess above the threshold. `boundary_censored` is true when the event touches the first or last day of the analysed period, so its true length is unknown.
 - **Per year**: events started, heatwave days, mean and longest duration, mean daily maximum and its anomaly against the 1991–2020 mean, coverage, and a 5-year rolling mean of counts.
-- **Trend**: ordinary least squares slope of eligible annual counts, given as increasing, decreasing or flat, with `significance_tested: false`. With fewer than 10 eligible years it is "insufficient_data".
+- **Trend**: a two-sided Mann-Kendall test on eligible annual counts with tie-corrected variance. The direction is increasing or decreasing only when p < 0.05, otherwise "no_significant_trend"; with fewer than 10 eligible years it is "insufficient_data". Sen's slope (the median pairwise slope over actual years) gives the size, and the ordinary least squares slope is kept for reference. A `SERIAL_CORRELATION` warning appears when a significant result coincides with positive lag-1 autocorrelation above Anderson's 95% bound. For example, over 1981–2024 Athens shows a significant increase (p < 0.001, +0.053 events per year) and Tokyo does not (p = 0.59).
 
 Details and edge cases: [backend/docs/climate-methodology.md](backend/docs/climate-methodology.md).
 
@@ -251,9 +251,9 @@ Commands, as run on 2026-10-15:
 
 | Suite | Command | Result |
 |---|---|---|
-| Backend | `cd backend && uv run pytest -m "not live_external"` | 273 passed, 8 skipped; the 8 are MongoDB repository tests, which also passed when `CLIMATE_TEST_MONGODB_URI` pointed at a local MongoDB |
+| Backend | `cd backend && uv run pytest -m "not live_external"` | 283 passed, 8 skipped; the 8 are MongoDB repository tests, which also passed when `CLIMATE_TEST_MONGODB_URI` pointed at a local MongoDB |
 | Backend lint | `uv run ruff check app tests` | Runs in CI |
-| Frontend | `cd frontend && npm test` | 107 passed |
+| Frontend | `cd frontend && npm test` | 111 passed |
 | Frontend static checks | `npm run typecheck`, `npm run lint`, `npm run build` | Pass |
 | Documentation | `python scripts/check_docs.py --self-test` and `python scripts/check_docs.py` | Pass (61 Markdown files, 85 concepts, 28 requirements) |
 | Benchmark | `python scripts/benchmark.py --base-url http://127.0.0.1:8000 --iterations 10` | Cold and warm latency with warm p50/p95; see the verification log |
@@ -267,7 +267,7 @@ Measured results (details and conditions in the [verification log](docs/verifica
 | Cold analysis, 0.4° × 0.6° box (9 points), 10 years, local MongoDB | 13 s |
 | Cached analysis | 57.5 ms from Atlas, 7.7 ms local |
 | Render free-plan wake-up | 20–35 s for the first request after idle |
-| Frontend JavaScript (gzip) | 86.0 kB first load, plus a 44.5 kB map chunk loaded later |
+| Frontend JavaScript (gzip) | 86.4 kB first load, plus a 44.5 kB map chunk loaded later |
 | Frontend CSS (gzip) | 3.7 kB, plus 6.4 kB with the maps |
 | Accessibility (axe-core) | 0 violations in the tested states |
 | Responsive layout | No horizontal overflow at 9 sizes from 320 × 568 to 1920 × 1080 |
@@ -290,7 +290,7 @@ Measured results (details and conditions in the [verification log](docs/verifica
 1. **Reanalysis, not stations.** NASA POWER (about 0.5° × 0.625°) and ERA5 (0.25°) describe a grid cell's average, not a street or an urban heat island.
 2. **Production covers 1981 onward.** With the ERA5 fallback off, the earliest start year is 1981. The server reports it in its health response, and the form uses it for validation, hints and presets. Before the first health answer arrives, the form allows 1940 and the server rejects earlier years with a clear message.
 3. **Fixed annual threshold.** It finds hot-season extremes, not unseasonal warmth.
-4. **Descriptive trends only.** No significance test, and no causal claims.
+4. **Trend test assumptions.** The Mann-Kendall test assumes independent years and is only warned about, not corrected, for serial correlation; it says nothing about causes.
 5. **UTC days.** Daily maxima are per UTC calendar day, which can differ from local days.
 6. **Free hosting.** The API sleeps when idle, and rate limits are per process.
 7. **Third-party map tiles.** OpenStreetMap's tile servers are for light use; heavier use needs another tile source.
@@ -299,7 +299,7 @@ Measured results (details and conditions in the [verification log](docs/verifica
 
 ## 10. What I would improve with more time
 
-1. **Stronger trend detection.** Add the Mann-Kendall test with Sen's slope, and report a near-zero slope as "no clear change" instead of labelling it by its sign alone (New Delhi 1995–2024 fits −0.004 events per year, which the app currently shows as "decreasing").
+1. **Serial-correlation-aware trend test.** Replace the warning with a corrected test (Hamed-Rao modified Mann-Kendall, or trend-free pre-whitening), and show Sen's slope as a line on the frequency chart.
 2. **Exportable insights.** Extend the CSV export, which covers events today, to include the summary, insights and method, and add a PDF report.
 3. **Seasonal thresholds and local days.** Offer a day-of-year percentile threshold to catch unseasonal heat, and compute daily maxima in local time instead of UTC days.
 4. **Larger regions.** Support states and other administrative areas by sampling a polygon, with a sample count that scales with area, instead of boxes limited to 2° × 2°.

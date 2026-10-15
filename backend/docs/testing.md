@@ -10,7 +10,7 @@ Use [the shared workflow](../../docs/ai-development-workflow.md) for planning/re
 | CONTRACT-OUTPUT | Response shape/nullability/invariants, sorted years, event count sums, metadata, error envelope |
 | CLIMATE-BASELINE | Independently calculated percentile/interpolation, fixed baseline, coverage gates and leap counts |
 | CLIMATE-RUNS | Equality, 2/3 days, gaps, missing/invalid, cross-year, final flush, censoring, ineligible-year crossing |
-| CLIMATE-TREND | Known slopes, actual year spacing, ten-year gate, five-year rolling gaps, zero denominator, no significance |
+| CLIMATE-TREND | Known slopes, actual year spacing, ten-year gate, five-year rolling gaps, zero denominator; hand-computed Mann-Kendall S, variance, Z, p, τ and Sen's slope, ties, boundary p, serial-correlation warning |
 | PROVIDER-NORMALIZE | Shapes, units, dates, duplicates/conflicts, invalid/nulls, response limit and bounded retries |
 | DB-CACHE | Real DB index uniqueness, expiry lookup before TTL cleanup, partial upsert recovery, method/source key changes |
 | CLIMATE-SPATIAL | Bounds, nine centers, weights, dedup, missing/invalid samples, no unsupported heatmap |

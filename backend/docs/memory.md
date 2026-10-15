@@ -9,7 +9,7 @@
 - Contract 0.2 (user-approved ADR-017) replaced the ERA5-only source object; `SOURCE_PROFILES` in app/schemas.py is the backend copy of its provider table. NASA POWER v2.10.0 reports `sources` MERRA2/POWER, UTC, °C, fill −999 and echoes the requested point, so NASA `resolved` stays null.
 - Pydantic 2.14 error text echoes input (union tags) and loc carries user-chosen keys even with hide_input_in_errors; API 422 details must stay fixed-message and path-sanitized. Its strip-whitespace string path already rejects lone surrogates.
 - Provider transport is `ProviderHttp` (injected client, sleep, jitter). On Windows, pytest puts the test id in an env var capped at 32,767 chars, so huge parameters need explicit ids. httpx rejects non-ASCII header values.
-- Fixed 1991–2020 all-season linear p95, strict exceedance, three-day runs, explicit year/month gates, cross-year/censoring rules and descriptive OLS remain unchanged; methodology owns science.
+- Fixed 1991–2020 all-season linear p95, strict exceedance, three-day runs, explicit year/month gates, cross-year/censoring rules remain unchanged; since heatwave-v2 the trend direction comes from a Mann-Kendall test with Sen's slope (ADR-025), with OLS kept for reference; methodology owns science.
 - MongoDB persistence/readback remains mandatory for eventual analysis; no memory production substitute. No repositories/collections/indexes or climate engine exist.
 - One worker initially; no Redis/queue/AI service. Deferred infrastructure has evidence-based review triggers in the decision register.
 - The shared concept matrix and local task tracker own traceability; current state/evidence must be updated after each meaningful change. Independent Git and CI remain unconfigured.
