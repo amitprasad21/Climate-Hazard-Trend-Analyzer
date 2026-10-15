@@ -307,7 +307,8 @@ Branch `feature/leaflet-map`, not yet merged or deployed. Frontend only; adds le
 - **Mutation checks**: 15 of 15 map mutants caught (cell honesty, wrapping, clamping, box ordering, credit prefix, centring, corner reset, label rule, shape stability).
 - **Browser** (Claude pane, Chromium, local API restarted on current code): OpenStreetMap tiles load and render grayscale and dark with the credit; city selection centres the picker; real and dispatched clicks set points; two corner clicks built a box whose analysis (13 s) shows the box and 9 sample points; a NASA POWER point shows no invented cell; 0 px page overflow at all nine sizes.
 - **Found during verification**: CARTO tiles need a key (watermark tiles), so the basemap changed to OpenStreetMap with the user's approval; three UI defects fixed (map not centring on chosen places, light credit box, stale city label after a map pick). The previously running local API predated BE-006 and rejected boxes until restarted.
-- **Not verified**: the deployed site with maps, a physical touch device, per-size screenshots.
+- **Production** (after merging to `main`, CI passed): on climatetrend.vercel.app the picker loaded OpenStreetMap tiles with the credit, and New Delhi 1995–2024 completed in 4 s with 64 calendar bars and the result map.
+- **Not verified**: a physical touch device, per-size screenshots.
 
 ## Server-reported earliest start year (BE-012, FE-009), 2026-10-15
 
